@@ -1,7 +1,13 @@
 public class PlayerIdleState : PlayerState
 {
-    public PlayerIdleState(PlayerStatesController statesController) : base (statesController)
+    public PlayerIdleState(PlayerParamsSO playerParams, PlayerStatesController statesController) 
+    : base (playerParams, statesController)
     {
+    }
+
+    public override void OnEnter()
+    {
+        _statesController.IdleAnimation();
     }
 
     public override PlayerState ReactToCommand(PlayerCommand command)
@@ -19,6 +25,12 @@ public class PlayerIdleState : PlayerState
             default:
                 throw new System.ArgumentException($"Unknown type of command: {command}");
         }
+    }
+
+    public override PlayerState ProcessState()
+    {
+        CheckGravityMove();
+        return null;
     }
 
     public override string ToString()

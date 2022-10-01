@@ -7,15 +7,35 @@ public class PlayerStatesController
     public PlayerMoveState MoveState { get; set; }
     public PlayerDashState DashState { get; set; }
 
+    public CharacterController Player { get; set; }
     private PlayerState _currentState;
+    private PlayerAnimator _animator;
 
-    public PlayerStatesController(CharacterController controller)
+    public PlayerStatesController(PlayerParamsSO playerParams, CharacterController controller, PlayerAnimator animator)
     {
-        IdleState = new PlayerIdleState(this);
-        MoveState = new PlayerMoveState(controller, this);
-        DashState = new PlayerDashState(this);
+        Player = controller;
+        
+        IdleState = new PlayerIdleState(playerParams, this);
+        MoveState = new PlayerMoveState(playerParams, this);
+        DashState = new PlayerDashState(playerParams, this);
 
+        _animator = animator;
         _currentState = IdleState;
+    }
+
+    public void IdleAnimation()
+    {
+        _animator.Idle();
+    }
+
+    public void MoveAnimation()
+    {
+        _animator.Move();
+    }
+
+    public void DashAnimation()
+    {
+        _animator.Dash();
     }
 
     public void ReactToCommand(PlayerCommand command)
@@ -24,6 +44,8 @@ public class PlayerStatesController
         PlayerState newState = _currentState.ReactToCommand(command);
         if (newState != null)
         {
+            _currentState.OnExit();
+            newState.OnEnter();
             _currentState = newState;
         }
     }
@@ -33,6 +55,8 @@ public class PlayerStatesController
         PlayerState newState = _currentState.ProcessState();
         if (newState != null)
         {
+            _currentState.OnExit();
+            newState.OnEnter();
             _currentState = newState;
         }
     }

@@ -4,19 +4,11 @@ using UnityEngine;
 public class PlayerParamsSO : ScriptableObject
 {
     [SerializeField]
-    private float _moveSpeed = 1;
-
-    [SerializeField]
     private float _dashDistance = 1;
 
     [SerializeField]
     private float _dashHitColorSwitchTime = 1;
 
-    public float MoveSpeed
-    {
-        get { return _moveSpeed; }
-        set { _moveSpeed = value; }
-    }
     public float DashDistance
     {
         get { return _dashDistance; }
@@ -26,5 +18,43 @@ public class PlayerParamsSO : ScriptableObject
     {
         get { return _dashHitColorSwitchTime; }
         set { _dashHitColorSwitchTime = value; }
+    }
+
+    [SerializeField]
+    private float _gravity = 9.81f;
+    [SerializeField]
+    private float _maxMoveSpeed = 1;
+    [SerializeField]
+    private float _acceleration = 3;
+    [SerializeField]
+    private float _dashSpeed = 5;
+
+    public float Gravity
+    {
+        get { return _gravity; }
+        set { _gravity = value; }
+    }
+    public float MaxMoveSpeed
+    {
+        get { return _maxMoveSpeed; }
+        set { _maxMoveSpeed = value; }
+    }
+    public float Acceleration
+    {
+        get { return _acceleration; }
+        set { _acceleration = value; }
+    }
+    public float DashSpeed
+    {
+        get { return _dashSpeed; }
+        set { _dashSpeed = value; }
+    }
+
+    [SerializeField]
+    private float _animationTransitionDuration = 0.3f;
+    public float AnimationTranstitionDuration
+    {
+        get { return _animationTransitionDuration; }
+        set { _animationTransitionDuration = value; }
     }
 }

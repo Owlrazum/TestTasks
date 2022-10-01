@@ -1,12 +1,32 @@
 using UnityEngine;
 public class PlayerMoveState : PlayerState
 {
+    private readonly float _acceleration;
+    private readonly float _maxSpeed;
+
     private Vector3 _direction;
-    private float _speed;
-    private CharacterController _controller;
-    public PlayerMoveState(CharacterController controller, PlayerStatesController statesController) : base (statesController)
+    private float _currentSpeed;
+    private bool _shouldStartAtMaxSpeed;
+
+    public PlayerMoveState(PlayerParamsSO playerParams, PlayerStatesController statesController)
+     : base (playerParams, statesController)
     {
-        _controller = controller;
+        _acceleration = playerParams.Acceleration;
+        _maxSpeed = playerParams.MaxMoveSpeed;
+        _gravity = playerParams.Gravity;
+    }
+
+    public override void OnEnter()
+    {
+        _statesController.MoveAnimation();
+        if (_shouldStartAtMaxSpeed)
+        {
+            _currentSpeed = _maxSpeed;
+        }
+        else
+        { 
+            _currentSpeed = 0;
+        }
     }
 
     public override PlayerState ReactToCommand(PlayerCommand command)
@@ -27,7 +47,7 @@ public class PlayerMoveState : PlayerState
     private PlayerState ReactToMoveCommand(PlayerMoveCommand moveCommand)
     {
         _direction = moveCommand.Direction;
-        _speed = moveCommand.Speed;
+        _shouldStartAtMaxSpeed = moveCommand.ShouldStartAtMaxSpeed;
         return null;
     }
 
@@ -39,8 +59,14 @@ public class PlayerMoveState : PlayerState
 
     public override PlayerState ProcessState()
     {
-        Vector3 tranlation = _direction * _speed * Time.deltaTime;
-        _controller.Move(tranlation);
+        CheckGravityMove();
+
+        _currentSpeed += _acceleration * Time.deltaTime;
+        _currentSpeed = Mathf.Clamp(_currentSpeed, 0, _maxSpeed);
+
+
+        _statesController.Player.Move(_direction * _currentSpeed * Time.deltaTime);
+        _statesController.Player.transform.rotation = Quaternion.LookRotation(_direction, Vector3.up);
         return null;
     }
 

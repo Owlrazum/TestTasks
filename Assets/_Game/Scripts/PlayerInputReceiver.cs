@@ -17,16 +17,8 @@ public class PlayerInputReceiver
     private PlayerMoveCommand _moveCommand;
     private PlayerDashCommand _dashCommand;
 
-    private float _dashDistance;
-    private float _moveSpeed;
-
-
-    public PlayerInputReceiver(PlayerParamsSO playerParamsSO, CameraController cameraController)
+    public PlayerInputReceiver(CameraController cameraController)
     {
-        _moveSpeed = playerParamsSO.MoveSpeed;
-
-        _dashDistance = playerParamsSO.DashDistance;
-
         _moveCommand = new PlayerMoveCommand();
         _dashCommand = new PlayerDashCommand();
 
@@ -40,17 +32,16 @@ public class PlayerInputReceiver
         if (h != 0 || v != 0)
         {
             Vector3 inputDirection = new Vector3(h, 0, v);
-            inputDirection = _cameraController.AdjustInputDirection(inputDirection.normalized);
-            if (Input.GetMouseButtonDown(0))
+            Vector3 adjusted = _cameraController.AdjustInputDirection(inputDirection.normalized);
+            if (Input.GetMouseButtonDown(0)
+                || Input.GetKeyDown(KeyCode.Q))
             {
-                _dashCommand.Direction = inputDirection;
-                _dashCommand.Distance = _dashDistance;
+                _dashCommand.Direction = adjusted;
                 return _dashCommand;
             }
             else
             {
-                _moveCommand.Direction = inputDirection;
-                _moveCommand.Speed = _moveSpeed;
+                _moveCommand.Direction = adjusted;
                 return _moveCommand;
             }
         }

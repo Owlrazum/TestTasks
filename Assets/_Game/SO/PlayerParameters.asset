@@ -12,6 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3f723c1b70b8e4edfac22abc5a109e55, type: 3}
   m_Name: PlayerParameters
   m_EditorClassIdentifier: 
-  _moveSpeed: 10
-  _dashDistance: 1
+  _dashDistance: 4
   _dashHitColorSwitchTime: 1
+  _gravity: 9.81
+  _maxMoveSpeed: 3
+  _acceleration: 3
+  _dashSpeed: 14
+  _animationTransitionDuration: 0.3
