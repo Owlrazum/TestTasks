@@ -14,13 +14,39 @@ public class PlayerStatesController
     public PlayerStatesController(PlayerParamsSO playerParams, CharacterController controller, PlayerAnimator animator)
     {
         Player = controller;
-        
+
         IdleState = new PlayerIdleState(playerParams, this);
         MoveState = new PlayerMoveState(playerParams, this);
         DashState = new PlayerDashState(playerParams, this);
 
         _animator = animator;
         _currentState = IdleState;
+    }
+
+    public void ReactToCommand(PlayerCommand command)
+    {
+        // Each state should delegate command to new state if necessary.
+        PlayerState newState = _currentState.ReactToCommand(command);
+        if (newState != null)
+        {
+            _currentState.OnExit();
+            newState.OnEnter();
+            _currentState = newState;
+
+            GameDelegatesContainer.EventStateChanged?.Invoke(newState);
+        }
+    }
+
+    public void OnHit(ControllerColliderHit hit, out Player otherPlayer)
+    {
+        if (_currentState is PlayerDashState dashState)
+        {
+            bool found = hit.collider.TryGetComponent(out otherPlayer);
+            Assert.IsTrue(found && otherPlayer != null || !found);
+            return;
+        }
+
+        otherPlayer = null;
     }
 
     public void IdleAnimation()
@@ -38,20 +64,6 @@ public class PlayerStatesController
         _animator.Dash();
     }
 
-    public void ReactToCommand(PlayerCommand command)
-    {
-        // Each state should delegate command to new state if necessary.
-        PlayerState newState = _currentState.ReactToCommand(command);
-        if (newState != null)
-        {
-            _currentState.OnExit();
-            newState.OnEnter();
-            _currentState = newState;
-
-            GameDelegatesContainer.EventStateChanged?.Invoke(newState);
-        }
-    }
-
     public void Update()
     {
         PlayerState newState = _currentState.ProcessState();
@@ -60,7 +72,7 @@ public class PlayerStatesController
             _currentState.OnExit();
             newState.OnEnter();
             _currentState = newState;
-            
+
             GameDelegatesContainer.EventStateChanged?.Invoke(newState);
         }
     }

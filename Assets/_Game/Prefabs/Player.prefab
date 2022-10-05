@@ -211,7 +211,7 @@ SkinnedMeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: ccc50d631d14df84a982c4f4acd00013, type: 2}
+  - {fileID: 2100000, guid: 2590d487739d541438a2297f26c3f151, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1775,7 +1775,7 @@ GameObject:
   - component: {fileID: 6433015514231650127}
   - component: {fileID: 6433015514231650112}
   - component: {fileID: 2283513655703642355}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Player
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1815,7 +1815,7 @@ MonoBehaviour:
   syncInterval: 0.1
   _playerParams: {fileID: 11400000, guid: a9e1336c550ac4dcb89a662b781144c2, type: 2}
   _animator: {fileID: 1011967050290482546}
-  _virtualCameraPrefab: {fileID: 6095119729137715814, guid: 65fae404bfe86400eab744a6ec278fb7, type: 3}
+  _renderer: {fileID: 1011967050286314416}
   _followTransform: {fileID: 6719122268961145717}
 --- !u!143 &6433015514231650112
 CharacterController:

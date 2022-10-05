@@ -1,5 +1,5 @@
+using System.Collections;
 using UnityEngine;
-using Cinemachine;
 using Mirror;
 
 [RequireComponent(typeof(CharacterController))]
@@ -12,18 +12,21 @@ public class Player : NetworkBehaviour
     private Animator _animator;
 
     [SerializeField]
-    private CinemachineVirtualCamera _virtualCameraPrefab;
+    private SkinnedMeshRenderer _renderer;
 
     [SerializeField]
     private Transform _followTransform;
 
     private PlayerStatesController _statesController;
     private PlayerInputReceiver _playerInputReceiever;
+    private PlayerRenderer _playerRenderer;
     private CameraController _cameraController;
+
+    private bool _isInvincible;
+    public bool IsInvincible { get { return _isInvincible; } }
 
     public override void OnStartLocalPlayer()
     {
-        // CreateVirtualCamera();
         _cameraController = new CameraController(GameDelegatesContainer.GetRenderingCamera(), _followTransform);
         _playerInputReceiever = new PlayerInputReceiver(_cameraController);
     }   
@@ -33,14 +36,7 @@ public class Player : NetworkBehaviour
         PlayerAnimator animator = new PlayerAnimator(_animator, _playerParams);
         CharacterController controller = GetComponent<CharacterController>();
         _statesController = new PlayerStatesController(_playerParams, controller, animator);
-    }
-
-    private void CreateVirtualCamera()
-    {
-        var vCamGb = Instantiate(_virtualCameraPrefab);
-        var vcam = vCamGb.GetComponent<CinemachineVirtualCamera>();
-        vcam.Follow = transform;
-        vcam.LookAt = transform;
+        _playerRenderer = new PlayerRenderer(_playerParams, _renderer);
     }
 
     private void Update()
@@ -49,6 +45,8 @@ public class Player : NetworkBehaviour
         { 
             PlayerCommand command = _playerInputReceiever.GetCommand();
             CmdInputCommand(command);
+            _statesController.ReactToCommand(command);
+            _statesController.Update();
         }
     }
 
@@ -60,13 +58,52 @@ public class Player : NetworkBehaviour
         }
     }
 
+    private void OnControllerColliderHit(ControllerColliderHit hit)
+    {
+        if (hit.gameObject.layer != Layers.Player)
+        {
+            return;
+        }
+        _statesController.OnHit(hit, out Player otherPlayer);
+        if (otherPlayer != null)
+        {
+            Debug.Log("Hit other");
+            otherPlayer.OnDashHit();
+        }
+    }
+
+    public void OnDashHit()
+    {
+        if (_isInvincible)
+        {
+            Debug.Log("Invicible");
+            return;
+        }
+
+        StartCoroutine(InvincibilityTimer());
+    }
+
+    private IEnumerator InvincibilityTimer()
+    {
+        SetInvincibility(true);
+        yield return new WaitForSeconds(_playerParams.DashHitColorSwitchTime);
+        SetInvincibility(false);
+    }
+
+    private void SetInvincibility(bool isInvincible)
+    {
+        Debug.Log($"I am {isInvincible}");
+        _isInvincible = isInvincible;
+        _playerRenderer.OnInvincibilityChange(isInvincible);
+    }
+
     [Command]
     private void CmdInputCommand(PlayerCommand command)
     {
         RpcInputCommand(command);
     }
 
-    [ClientRpc]
+    [ClientRpc(includeOwner = false)]
     private void RpcInputCommand(PlayerCommand command)
     { 
         _statesController.ReactToCommand(command);

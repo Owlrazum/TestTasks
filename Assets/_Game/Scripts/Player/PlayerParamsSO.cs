@@ -7,17 +7,15 @@ public class PlayerParamsSO : ScriptableObject
     private float _dashDistance = 1;
 
     [SerializeField]
-    private float _dashHitColorSwitchTime = 1;
+    private float _dashHitColorSwitchTime = 3;
 
     public float DashDistance
     {
         get { return _dashDistance; }
-        set { _dashDistance = value; }
     }
     public float DashHitColorSwitchTime
     {
         get { return _dashHitColorSwitchTime; }
-        set { _dashHitColorSwitchTime = value; }
     }
 
     [SerializeField]
@@ -36,32 +34,26 @@ public class PlayerParamsSO : ScriptableObject
     public float Gravity
     {
         get { return _gravity; }
-        set { _gravity = value; }
     }
     public float MaxMoveSpeed
     {
         get { return _maxMoveSpeed; }
-        set { _maxMoveSpeed = value; }
     }
     public float RotationSpeedDeg
     {
         get { return _rotationSpeedDeg; }
-        set { _rotationSpeedDeg = value; }
     }
     public float Acceleration
     {
         get { return _acceleration; }
-        set { _acceleration = value; }
     }
     public float Deceleration
     {
         get { return _deceleration; }
-        set { _deceleration = value; }
     }
     public float DashSpeed
     {
         get { return _dashSpeed; }
-        set { _dashSpeed = value; }
     }
 
     [SerializeField]
@@ -69,6 +61,19 @@ public class PlayerParamsSO : ScriptableObject
     public float AnimationTranstitionDuration
     {
         get { return _animationTransitionDuration; }
-        set { _animationTransitionDuration = value; }
+    }
+
+    [SerializeField]
+    private Material _defaultMaterial;
+    public Material DefaultMaterial
+    {
+        get { return _defaultMaterial; }
+    }
+
+    [SerializeField]
+    private Material _invincibleMaterial;
+    public Material InvincibleMaterial
+    {
+        get { return _invincibleMaterial; }
     }
 }
