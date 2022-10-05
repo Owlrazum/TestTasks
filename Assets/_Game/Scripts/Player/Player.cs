@@ -14,14 +14,18 @@ public class Player : NetworkBehaviour
     [SerializeField]
     private CinemachineVirtualCamera _virtualCameraPrefab;
 
+    [SerializeField]
+    private Transform _followTransform;
+
     private PlayerStatesController _statesController;
     private PlayerInputReceiver _playerInputReceiever;
+    private CameraController _cameraController;
 
     public override void OnStartLocalPlayer()
     {
-        CreateVirtualCamera();
-        CameraController cameraController = new CameraController(GameDelegatesContainer.GetRenderingCamera());
-        _playerInputReceiever = new PlayerInputReceiver(cameraController);
+        // CreateVirtualCamera();
+        _cameraController = new CameraController(GameDelegatesContainer.GetRenderingCamera(), _followTransform);
+        _playerInputReceiever = new PlayerInputReceiver(_cameraController);
     }   
 
     public override void OnStartClient()
@@ -48,9 +52,23 @@ public class Player : NetworkBehaviour
         }
     }
 
+    private void LateUpdate()
+    {
+        if (isLocalPlayer)
+        { 
+            _cameraController.Update();
+        }
+    }
+
     [Command]
     private void CmdInputCommand(PlayerCommand command)
     {
+        RpcInputCommand(command);
+    }
+
+    [ClientRpc]
+    private void RpcInputCommand(PlayerCommand command)
+    { 
         _statesController.ReactToCommand(command);
         _statesController.Update();
     }

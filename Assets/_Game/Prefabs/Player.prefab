@@ -525,7 +525,7 @@ Transform:
   - {fileID: 1011967050280609258}
   - {fileID: 1011967050280609256}
   m_Father: {fileID: 6433015514231650113}
-  m_RootOrder: 0
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!95 &1011967050290482546
 Animator:
@@ -1542,6 +1542,37 @@ Transform:
   m_Father: {fileID: 1011967050280608466}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &5426897917340659681
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6719122268961145717}
+  m_Layer: 0
+  m_Name: Follow
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6719122268961145717
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5426897917340659681}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 1.5, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6433015514231650113}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &5639396700335828839
 GameObject:
   m_ObjectHideFlags: 0
@@ -1744,8 +1775,6 @@ GameObject:
   - component: {fileID: 6433015514231650127}
   - component: {fileID: 6433015514231650112}
   - component: {fileID: 2283513655703642355}
-  - component: {fileID: -7827881889563898987}
-  - component: {fileID: 7797262610891708477}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -1765,6 +1794,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 6719122268961145717}
   - {fileID: 1011967050280608490}
   m_Father: {fileID: 0}
   m_RootOrder: 0
@@ -1786,6 +1816,7 @@ MonoBehaviour:
   _playerParams: {fileID: 11400000, guid: a9e1336c550ac4dcb89a662b781144c2, type: 2}
   _animator: {fileID: 1011967050290482546}
   _virtualCameraPrefab: {fileID: 6095119729137715814, guid: 65fae404bfe86400eab744a6ec278fb7, type: 3}
+  _followTransform: {fileID: 6719122268961145717}
 --- !u!143 &6433015514231650112
 CharacterController:
   m_ObjectHideFlags: 0
@@ -1821,59 +1852,6 @@ MonoBehaviour:
   visible: 0
   m_AssetId: 94707786cd5a74dc786eaba271e13721
   hasSpawned: 0
---- !u!114 &-7827881889563898987
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6433015514231650117}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2f74aedd71d9a4f55b3ce499326d45fb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  syncMode: 0
-  syncInterval: 0.01
-  clientAuthority: 0
-  sendRate: 30
-  bufferTimeMultiplier: 2
-  bufferSizeLimit: 64
-  catchupNegativeThreshold: -1
-  catchupPositiveThreshold: 1
-  catchupSpeed: 0.009999999776482582
-  slowdownSpeed: 0.009999999776482582
-  driftEmaDuration: 1
-  dynamicAdjustment: 1
-  dynamicAdjustmentTolerance: 1
-  deliveryTimeEmaDuration: 2
-  onlySyncOnChange: 1
-  bufferResetMultiplier: 5
-  positionSensitivity: 0.01
-  rotationSensitivity: 0.01
-  scaleSensitivity: 0.01
-  syncPosition: 1
-  syncRotation: 1
-  syncScale: 0
-  showGizmos: 0
-  showOverlay: 0
-  overlayColor: {r: 0, g: 0, b: 0, a: 0.5}
---- !u!114 &7797262610891708477
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6433015514231650117}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7f6f3bf89aa97405989c802ba270f815, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  syncMode: 0
-  syncInterval: 0.01
-  clientAuthority: 0
-  animator: {fileID: 1011967050290482546}
 --- !u!1 &6452392754073654481
 GameObject:
   m_ObjectHideFlags: 0

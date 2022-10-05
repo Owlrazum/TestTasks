@@ -8,7 +8,7 @@ public class NetworkManagerHUDFont : MonoBehaviour
 {
     NetworkManager manager;
 
-    public int FontSize;
+    public int FontSize = 50;
     public int OffsetX;
     public int OffsetY;
 
