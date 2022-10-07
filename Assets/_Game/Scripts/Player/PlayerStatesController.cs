@@ -37,7 +37,7 @@ public class PlayerStatesController
         }
     }
 
-    public void OnHit(ControllerColliderHit hit, out Player otherPlayer)
+    public void OnHit(ControllerColliderHit hit, out PlayerCharacter otherPlayer)
     {
         if (_currentState is PlayerDashState dashState)
         {

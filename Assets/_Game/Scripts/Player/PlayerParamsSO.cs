@@ -56,6 +56,14 @@ public class PlayerParamsSO : ScriptableObject
         get { return _dashSpeed; }
     }
 
+
+    [SerializeField]
+    private Vector3 _initialCameraOffset = new Vector3(0, 1, -5);
+    public Vector3 InitialCameraOffset 
+    {
+        get { return _initialCameraOffset; }
+    }
+    
     [SerializeField]
     private float _animationTransitionDuration = 0.3f;
     public float AnimationTranstitionDuration

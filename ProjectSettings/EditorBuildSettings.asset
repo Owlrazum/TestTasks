@@ -7,7 +7,10 @@ EditorBuildSettings:
   m_Scenes:
   - enabled: 1
     path: Assets/_Game/Scenes/Offline.unity
-    guid: fbb27298c447f4003b05fee7d1d38ae1
+    guid: d9bdd25618f32421f881e3b109138440
+  - enabled: 1
+    path: Assets/_Game/Scenes/Room.unity
+    guid: 30e308bc212864b718f4d1dd6c80a6b3
   - enabled: 1
     path: Assets/_Game/Scenes/Online.unity
     guid: 82a55b7b6414e43a8948e7aa4c1e0cff

@@ -1,9 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Assertions;
-using Mirror;
 
-public class RoomUI : NetworkBehaviour
+public class RoomUI : MonoBehaviour
 {
     [SerializeField]
     private Transform _roomPlayersUIParent;
@@ -12,19 +11,14 @@ public class RoomUI : NetworkBehaviour
     private void Awake()
     {
         UIDelegatesContainer.GetRoomUI += GetRoomUI;
-        
-        
+
+        NetworkDelegatesContainer.EventLocalPlayerAssignedIndex += ShowLocalPlayerSlot;
+
+        NetworkDelegatesContainer.EventOtherPlayerRegisteredInRoom += ShowOtherPlayerSlot;
+        NetworkDelegatesContainer.EventOtherPlayerUnregisteredInRoom += HideOtherPlayerSlot;
+        NetworkDelegatesContainer.EventOtherClientReadyStatusChanged += OnOtherPlayerReadyStatusChanged;
+
         InitializeRoomPlayersUIList();
-    }
-
-    private void OnDestroy()
-    {
-        UIDelegatesContainer.GetRoomUI -= GetRoomUI;
-    }
-
-    private RoomUI GetRoomUI()
-    {
-        return this;
     }
 
     private void InitializeRoomPlayersUIList()
@@ -37,19 +31,35 @@ public class RoomUI : NetworkBehaviour
         }
     }
 
-    public void ShowPlayerAtIndex(int index)
+    private void OnDestroy()
     {
-        Show(index);
+        UIDelegatesContainer.GetRoomUI -= GetRoomUI;
+
+        NetworkDelegatesContainer.EventLocalPlayerAssignedIndex -= ShowLocalPlayerSlot;
+
+        NetworkDelegatesContainer.EventOtherPlayerRegisteredInRoom -= ShowOtherPlayerSlot;
+        NetworkDelegatesContainer.EventOtherPlayerUnregisteredInRoom -= HideOtherPlayerSlot;
+        NetworkDelegatesContainer.EventOtherClientReadyStatusChanged -= OnOtherPlayerReadyStatusChanged;
     }
 
-    public void Hide(int index)
+    private RoomUI GetRoomUI()
+    {
+        return this;
+    }
+
+    public void ShowLocalPlayerSlot(int index)
+    { 
+        _roomPlayersUI[index].Show(true);
+    }
+
+    public void ShowOtherPlayerSlot(int index)
+    {
+        _roomPlayersUI[index].Show(false);
+    }
+
+    public void HideOtherPlayerSlot(int index)
     {
         _roomPlayersUI[index].Hide();
-    }
-
-    public void Show(int index)
-    {
-        _roomPlayersUI[index].Show(isLocalPlayer);
     }
 
     public void OnOtherPlayerReadyStatusChanged(int index, bool readyStatus)

@@ -42,12 +42,14 @@ namespace Mirror
         [Scene]
         [FormerlySerializedAs("m_OfflineScene")]
         [Tooltip("Scene that Mirror will switch to when the client or server is stopped")]
+        [NonSerialized] //! modification
         public string offlineScene = "";
 
         /// <summary>Automatically switch to this scene upon going online (after connect/startserver).</summary>
         [Scene]
         [FormerlySerializedAs("m_OnlineScene")]
         [Tooltip("Scene that Mirror will switch to when the server is started. Clients will recieve a Scene Message to load the server's current scene when they connect.")]
+        [NonSerialized] //! modification
         public string onlineScene = "";
 
         // transport layer
@@ -81,6 +83,7 @@ namespace Mirror
         /// <summary>Enable to automatically create player objects on connect and on scene change.</summary>
         [FormerlySerializedAs("m_AutoCreatePlayer")]
         [Tooltip("Should Mirror automatically spawn the player after scene change?")]
+        [NonSerialized] //! modified
         public bool autoCreatePlayer = true;
 
         /// <summary>Where to spawn players.</summary>

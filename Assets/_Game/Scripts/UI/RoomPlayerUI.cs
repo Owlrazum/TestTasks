@@ -32,10 +32,7 @@ public class RoomPlayerUI : MonoBehaviour
             "RoomPlayerUI assumes the order of its children to be first local, second other playerUI, third ready state button");
 
         TryGetComponent(out _canvasGroup);
-    }
 
-    private void Start()
-    {
         _readyStateButton.CanInteract = false;
         _canvasGroup.alpha = _hideAlphaValue;
     }
@@ -62,6 +59,7 @@ public class RoomPlayerUI : MonoBehaviour
     public void Hide()
     {
         _canvasGroup.alpha = _hideAlphaValue;
+        Debug.Log("hh");
         _localPlayerUI.gameObject.SetActive(false);
         _otherPlayerUI.gameObject.SetActive(true);
     }
@@ -78,7 +76,7 @@ public class RoomPlayerUI : MonoBehaviour
     {
         _isLocalReady = !_isLocalReady;
         _readyStateButton.ChangeButtonText(_isLocalReady ? ReadyText : NotReadyText);
-        UIDelegatesContainer.EventLocalReadyButtonClick(_isLocalReady);
+        UIDelegatesContainer.EventLocalReadyStatusChange(_isLocalReady);
     }
 
     public void OnOtherPlayerReadyStatusChanged(bool readyStatus)

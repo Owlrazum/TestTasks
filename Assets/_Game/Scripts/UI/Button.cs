@@ -75,7 +75,6 @@ public class Button : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler,
 
         BeforeOnClick?.Invoke();
         OnClick?.Invoke();
-        Debug.Log($"OnClick {OnClick == null}");
     }
 
     public void OnPointerEnter(PointerEventData data)
