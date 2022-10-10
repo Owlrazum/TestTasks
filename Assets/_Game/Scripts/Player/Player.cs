@@ -21,40 +21,38 @@ public class Player : NetworkBehaviour
         set { _index = value; }
     }
 
+    public bool IsReady { get; set; }
+
     private PlayerCharacter _character;
 
     private void Awake()
     {
         DontDestroyOnLoad(gameObject);
-        // NetworkRoom.NetworkRoomInitialized += OnNetworkRoomReady;
     }
 
-    private void OnDestroy()
-    { 
-        // NetworkRoom.NetworkRoomInitialized -= OnNetworkRoomReady;
-    }
-
-    private void OnNetworkRoomReady()
+    public override void OnStartLocalPlayer()
     {
-        if (isLocalPlayer)
-        { 
-            NetworkRoom.ActionRegisterPlayerInRoom(gameObject);
-        }
+        NetworkRoom.ActionRegisterPlayerInRoom(gameObject);
     }
 
+    [Server]
     public void ServerAssignCharacter(NetworkIdentity playerCharacterNetId)
     {
-        ClientRpcAssignCharacter(playerCharacterNetId);
+        playerCharacterNetId.AssignClientAuthority(connectionToClient);
+        TargetRpcAssignCharacter(connectionToClient, playerCharacterNetId);
     }
 
-    [ClientRpc]
-    private void ClientRpcAssignCharacter(NetworkIdentity playerCharacterNetId)
+    [TargetRpc]
+    private void TargetRpcAssignCharacter(NetworkConnection conn, NetworkIdentity playerCharacterNetId)
     { 
         _character = playerCharacterNetId.gameObject.GetComponent<PlayerCharacter>();
         Assert.IsNotNull(_character, $"Client has not found PlayerCharacter using {playerCharacterNetId}");
         _character.EventHitOtherCharacter += OnCharacterHitOtherCharacter;
+        Debug.Log("OnPlayerAssign target");
+        _character.OnPlayerAssign();
     }
 
+    [Server]
     public void ServerDisposeCharacter()
     {
         ClientRpcDisposeCharacter();

@@ -8,8 +8,6 @@ using Mirror;
 public class NetworkRoom : NetworkBehaviour
 {
     #region Publish
-    public static Action NetworkRoomInitialized;
-
     public static Action<int> EventOtherPlayerRegisteredInRoom;
     public static Action<int> EventLocalPlayerAssignedIndex;
     public static Action<int> EventOtherPlayerUnregisteredInRoom;
@@ -56,8 +54,6 @@ public class NetworkRoom : NetworkBehaviour
 
         EventLocalReadyStatusChange += OnLocalReadyStatusChange;
         EventStartGameButtonPress += OnStartGameButtonPress;
-
-        NetworkRoomInitialized?.Invoke();
     }
 
     public override void OnStopClient()
@@ -132,7 +128,6 @@ public class NetworkRoom : NetworkBehaviour
             _readyPlayerCount--;
         }
 
-        Debug.Log($"_readyPlayerCount {_readyPlayerCount} {_minimumReadyPlayerCount} {_isStartAllowed}");
         if (_readyPlayerCount >= _minimumReadyPlayerCount && !_isStartAllowed)
         {
             _isStartAllowed = true;

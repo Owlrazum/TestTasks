@@ -18,7 +18,7 @@ public class NetworkScenesSO : ScriptableObject
     [Scene]
     public string OnlineScene;
 
-    public string GetName(SceneType sceneType)
+    public string GetSceneName(SceneType sceneType)
     {
         return sceneType switch
         {
@@ -29,7 +29,7 @@ public class NetworkScenesSO : ScriptableObject
         };
     }
 
-    public SceneType GetType(string sceneName)
+    public SceneType GetSceneType(string sceneName)
     {
         if (sceneName == OfflineScene)
         {

@@ -3,14 +3,12 @@ using UnityEngine;
 using UnityEngine.Assertions;
 using Mirror;
 
+[RequireComponent(typeof(NetworkSpawner))]
 public class NetworkController : NetworkManager
 {
     [Header("NetworkController")]
     [SerializeField]
     private NetworkScenesSO _scenesToUse;
-
-    [SerializeField]
-    private GameController _gameController;
 
     public static Action ActionStartServer;
     public static Action ActionStartHost;
@@ -19,8 +17,16 @@ public class NetworkController : NetworkManager
     public static Action<string> ActionUpdateNetworkAddress;
 
     public static Action<SceneType> ActionServerChangeScene;
-    public static Func<Transform> ActionGetStartPosition; // sub
+    public static Func<Transform> ActionGetStartPosition;
+
     public static Action<SceneType> EventServerSceneChanged; // pub
+    public static Action<SceneType> EventClientSceneChanged; // pub
+
+    private NetworkSpawner _spawner;
+
+    public SceneType CurrentScene; // no syncVar because it is not networkBehaviour
+
+    public SceneType ClientLoadingScene;
 
     public override void Awake()
     {
@@ -28,7 +34,7 @@ public class NetworkController : NetworkManager
 
         ActionStartServer += StartServerAndSwitchScene;
         ActionStartHost += StartHostAndSwitchScene;
-        ActionStartClient += StartClientAndDestroyRedundantGameController;
+        ActionStartClient += StartClient;
 
         ActionUpdateNetworkAddress += UpdateNetworkAddress;
 
@@ -39,20 +45,24 @@ public class NetworkController : NetworkManager
         // expose specific functionality for me. 
         // Below is a way to ensure that only one NetworkController instance is existing.
         Assert.IsTrue(ActionStartServer.GetInvocationList().Length == 1, "There are more than one NetworkControllers!");
+
+        _spawner = GetComponent<NetworkSpawner>();
     }
 
     public override void OnDestroy()
     {
+        base.OnDestroy();
+
         ActionStartServer -= StartServerAndSwitchScene;
         ActionStartHost -= StartHostAndSwitchScene;
-        ActionStartClient -= StartClientAndDestroyRedundantGameController;
+        ActionStartClient -= StartClient;
 
         ActionUpdateNetworkAddress -= UpdateNetworkAddress;
 
         ActionServerChangeScene -= ServerChangeSceneByType;
         ActionGetStartPosition -= GetStartPosition;
 
-        Assert.IsTrue(ActionStartServer == null,  "There are more than one NetworkControllers!");
+        Assert.IsTrue(ActionStartServer == null, "There are more than one NetworkControllers!");
     }
 
     private void UpdateNetworkAddress(string address)
@@ -62,30 +72,63 @@ public class NetworkController : NetworkManager
 
     private void StartServerAndSwitchScene()
     {
-        StartServer();
+        if (NetworkServer.active)
+        {
+            Debug.LogWarning("Server already started.");
+            return;
+        }
+
+        mode = NetworkManagerMode.ServerOnly;
+        SetupServer();
+        // omit the spawn part and requires scene change part.
+
         ServerChangeSceneByType(SceneType.Room);
     }
 
     private void StartHostAndSwitchScene()
-    { 
-        StartHost();
-        ServerChangeSceneByType(SceneType.Room);
-    }
-
-    private void StartClientAndDestroyRedundantGameController()
     {
-        Destroy(_gameController);
-        StartClient();
+         if (NetworkServer.active)
+        {
+            Debug.LogWarning("Server already started.");
+            return;
+        }
+
+        mode = NetworkManagerMode.Host;
+        SetupServer();
+        finishStartHostPending = true;
+
+        ServerChangeSceneByType(SceneType.Room);
     }
 
     private void ServerChangeSceneByType(SceneType sceneType)
     {
-        ServerChangeScene(_scenesToUse.GetName(sceneType));
+        ServerChangeScene(_scenesToUse.GetSceneName(sceneType));
     }
 
     public override void OnServerSceneChanged(string sceneName)
     {
-        EventServerSceneChanged?.Invoke(_scenesToUse.GetType(sceneName));
+        SceneType newSceneType = _scenesToUse.GetSceneType(sceneName);
+        _spawner.OnServerSceneChanged(newSceneType);
+        CurrentScene = newSceneType;
+        EventServerSceneChanged?.Invoke(newSceneType);
+    }
+
+    public override void OnClientChangeScene(string newSceneName, SceneOperation sceneOperation, bool customHandling)
+    {
+        base.OnClientChangeScene(newSceneName, sceneOperation, customHandling);
+
+        ClientLoadingScene = _scenesToUse.GetSceneType(newSceneName);
+    }
+
+    public override void OnClientSceneChanged()
+    {
+        if (!NetworkClient.ready)
+        { 
+            NetworkClient.Ready();
+        }
+        
+        CurrentScene = ClientLoadingScene;
+        EventClientSceneChanged?.Invoke(CurrentScene);
     }
 
     public override void OnServerConnect(NetworkConnectionToClient conn)
@@ -96,11 +139,12 @@ public class NetworkController : NetworkManager
             return;
         }
 
-        
-        if (_gameController.GetState() == GameState.Gameplay)
-        {
-            conn.Disconnect();
-            return;
-        }
+        //TODO disconnect if gameplay state
+    }
+
+    public override void OnClientConnect()
+    {
+        NetworkClient.Ready();
+        NetworkClient.AddPlayer();
     }
 }

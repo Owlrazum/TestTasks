@@ -23,7 +23,6 @@ public class GameController : NetworkBehaviour
 
     public static Action LocalPlayerScoredPoint;
 
-    [SyncVar]
     private GameState _state;
     public GameState GetState()
     {
@@ -34,6 +33,7 @@ public class GameController : NetworkBehaviour
     private GameObject _playerCharacterPrefab;
 
     private Dictionary<int, Player> _players; // server-only
+    private int _readyPlayerCount;
 
     private void Awake()
     {
@@ -41,7 +41,9 @@ public class GameController : NetworkBehaviour
     }
 
     public override void OnStartServer()
-    {  
+    {
+        _readyPlayerCount = 0;
+
         ActionServerGameStart += ServerGameStart;
         NetworkController.EventServerSceneChanged += OnServerSceneChanged;
     }
@@ -52,6 +54,16 @@ public class GameController : NetworkBehaviour
         NetworkController.EventServerSceneChanged -= OnServerSceneChanged;
     }
 
+    public override void OnStartClient()
+    { 
+        NetworkController.EventClientSceneChanged += OnClientSceneChanged;
+    }
+
+    public override void OnStopClient()
+    { 
+        NetworkController.EventClientSceneChanged -= OnClientSceneChanged;
+    }
+
     [Server]
     private void ServerGameStart(Dictionary<int, Player> players)
     {
@@ -60,12 +72,44 @@ public class GameController : NetworkBehaviour
     }
 
     [Server]
-    private void OnServerSceneChanged(SceneType sceneType)
+    private void OnServerSceneChanged(SceneType newSceneType)
     {
-        if (sceneType == SceneType.Online)
+        UpdateState(newSceneType);
+    }
+
+    [Client]
+    private void OnClientSceneChanged(SceneType newSceneType)
+    {
+        UpdateState(newSceneType);
+        if (_state == GameState.Gameplay)
+        {
+            CmdOnClientLoadedGameplayScene();
+        }
+    }
+
+    private void UpdateState(SceneType newSceneType)
+    { 
+        _state = newSceneType switch
+        {
+            SceneType.Offline => GameState.Offline,
+            SceneType.Room => GameState.Room,
+            SceneType.Online => GameState.Gameplay,
+            _ => throw new System.ArgumentException("Unknown scene type")
+        };
+    }
+
+    [Command(requiresAuthority = false)]
+    private void CmdOnClientLoadedGameplayScene()
+    {
+
+        _readyPlayerCount++;
+        if (_readyPlayerCount == _players.Count)
         {
             ServerSpawnPlayerCharacters();
+            _readyPlayerCount = 0;
         }
+
+        Assert.IsTrue(_readyPlayerCount < _players.Count);
     }
 
     [Server]

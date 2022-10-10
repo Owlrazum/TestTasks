@@ -84,7 +84,7 @@ namespace Mirror
         [FormerlySerializedAs("m_AutoCreatePlayer")]
         [Tooltip("Should Mirror automatically spawn the player after scene change?")]
         [NonSerialized] //! modified
-        public bool autoCreatePlayer = true;
+        public bool autoCreatePlayer = false; //! modified
 
         /// <summary>Where to spawn players.</summary>
         [FormerlySerializedAs("m_PlayerSpawnMethod")]
@@ -123,7 +123,7 @@ namespace Mirror
         //    connected yet (no need to connect it before server was fully set up).
         //    in other words, we need this to know which mode we are running in
         //    during FinishLoadScene.
-        public NetworkManagerMode mode { get; private set; }
+        public NetworkManagerMode mode { get; protected set; } //! modified
 
         // virtual so that inheriting classes' OnValidate() can call base.OnValidate() too
         public virtual void OnValidate()
@@ -236,7 +236,7 @@ namespace Mirror
         }
 
         // full server setup code, without spawning objects yet
-        void SetupServer()
+        protected void SetupServer() //! modified
         {
             // Debug.Log("NetworkManager SetupServer");
             InitializeSingleton();
@@ -439,7 +439,7 @@ namespace Mirror
         }
 
         // This may be set true in StartHost and is evaluated in FinishStartHost
-        bool finishStartHostPending;
+        protected bool finishStartHostPending;
 
         // FinishStartHost is guaranteed to be called after the host server was
         // fully started and all the asynchronous StartHost magic is finished
@@ -928,6 +928,7 @@ namespace Mirror
             NetworkServer.isLoadingScene = false;
             NetworkClient.isLoadingScene = false;
 
+            Debug.Log($"FinishLoadScene {mode}");
             // host mode?
             if (mode == NetworkManagerMode.Host)
             {
@@ -954,7 +955,7 @@ namespace Mirror
         {
             // debug message is very important. if we ever break anything then
             // it's very obvious to notice.
-            //Debug.Log("Finished loading scene in host mode.");
+            Debug.Log("Finished loading scene in host mode.");
 
             if (clientReadyConnection != null)
             {
@@ -1314,6 +1315,7 @@ namespace Mirror
         // add a player object for the connection if no player object exists.
         public virtual void OnClientSceneChanged()
         {
+            Debug.Log("OnClientSceneChanged");
             // always become ready.
             if (!NetworkClient.ready) NetworkClient.Ready();
 

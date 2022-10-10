@@ -14,12 +14,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _dashDistance: 6
   _dashHitColorSwitchTime: 1
+  _syncTime: 0.1
   _gravity: 9.81
   _maxMoveSpeed: 4
   _rotationSpeedDeg: 360
   _acceleration: 5
   _deceleration: 5
   _dashSpeed: 14
+  _initialCameraOffset: {x: 0, y: 1, z: -5}
   _animationTransitionDuration: 0.3
   _defaultMaterial: {fileID: 2100000, guid: 2590d487739d541438a2297f26c3f151, type: 2}
   _invincibleMaterial: {fileID: 2100000, guid: 0cded60346a3f4eca87be49d46f02b9d, type: 2}

@@ -736,67 +736,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
---- !u!1001 &1491841949
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 5827266589177851776, guid: 343c669fc2cdc4480a4a2e5522f8b2e8, type: 3}
-      propertyPath: m_RootOrder
-      value: 4
-      objectReference: {fileID: 0}
-    - target: {fileID: 5827266589177851776, guid: 343c669fc2cdc4480a4a2e5522f8b2e8, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5827266589177851776, guid: 343c669fc2cdc4480a4a2e5522f8b2e8, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5827266589177851776, guid: 343c669fc2cdc4480a4a2e5522f8b2e8, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5827266589177851776, guid: 343c669fc2cdc4480a4a2e5522f8b2e8, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5827266589177851776, guid: 343c669fc2cdc4480a4a2e5522f8b2e8, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5827266589177851776, guid: 343c669fc2cdc4480a4a2e5522f8b2e8, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5827266589177851776, guid: 343c669fc2cdc4480a4a2e5522f8b2e8, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5827266589177851776, guid: 343c669fc2cdc4480a4a2e5522f8b2e8, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5827266589177851776, guid: 343c669fc2cdc4480a4a2e5522f8b2e8, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5827266589177851776, guid: 343c669fc2cdc4480a4a2e5522f8b2e8, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5827266589177851779, guid: 343c669fc2cdc4480a4a2e5522f8b2e8, type: 3}
-      propertyPath: m_Name
-      value: NetworkRoom
-      objectReference: {fileID: 0}
-    - target: {fileID: 5827266589177851782, guid: 343c669fc2cdc4480a4a2e5522f8b2e8, type: 3}
-      propertyPath: sceneId
-      value: 3331160608
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 343c669fc2cdc4480a4a2e5522f8b2e8, type: 3}
 --- !u!223 &316855184703952860
 Canvas:
   m_ObjectHideFlags: 0
@@ -891,10 +830,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_UiScaleMode: 0
+  m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
-  m_ReferenceResolution: {x: 800, y: 600}
+  m_ReferenceResolution: {x: 1920, y: 1080}
   m_ScreenMatchMode: 0
   m_MatchWidthOrHeight: 0
   m_PhysicalUnit: 3

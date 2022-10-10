@@ -6,11 +6,11 @@ public class ConsoleToGUI : MonoBehaviour
     [SerializeField]
     private int _fontSize;
     //#if !UNITY_EDITOR
-    static string myLog = "";
+    private string myLog = "";
     private string output;
     private string stack;
 
-    static string errorLog = "";
+    private string errorLog = "";
 
     private GUIStyle _textAreaStyle;
     private GUIStyle _textAreaErrorStyle;
