@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -12,11 +13,27 @@ public enum GameState
 
 public class GameController : NetworkBehaviour
 {
+    public static Action<Dictionary<int, Player>> ActionServerGameStart;
+
+    public static Action<PlayerCharacter> EventLocalPlayerCharacterSpawned;
+    public static Action EventLocalPlayerCharacterDespawned;
+
+    public static Func<Camera> GetRenderingCamera;
+    public static Action<PlayerState> EventStateChanged;
+
+    public static Action LocalPlayerScoredPoint;
+
     [SyncVar]
     private GameState _state;
+    public GameState GetState()
+    {
+        return _state;
+    }
 
     [SerializeField]
     private GameObject _playerCharacterPrefab;
+
+    private Dictionary<int, Player> _players; // server-only
 
     private void Awake()
     {
@@ -24,44 +41,44 @@ public class GameController : NetworkBehaviour
     }
 
     public override void OnStartServer()
-    {
-        GameDelegatesContainer.ServerEventSceneSwitch += OnServerSceneSwitch;
-        GameDelegatesContainer.ServerSpawnPlayerCharacters += ServerSpawnPlayerCharacters;
+    {  
+        ActionServerGameStart += ServerGameStart;
+        NetworkController.EventServerSceneChanged += OnServerSceneChanged;
     }
 
     public override void OnStopServer()
     { 
-        GameDelegatesContainer.ServerEventSceneSwitch -= OnServerSceneSwitch;
-        GameDelegatesContainer.ServerSpawnPlayerCharacters -= ServerSpawnPlayerCharacters;
-    }
-
-    public GameState GetState()
-    {
-        return _state;
+        ActionServerGameStart -= ServerGameStart;
+        NetworkController.EventServerSceneChanged -= OnServerSceneChanged;
     }
 
     [Server]
-    private void OnServerSceneSwitch(SceneType sceneType)
+    private void ServerGameStart(Dictionary<int, Player> players)
     {
-        _state = sceneType switch
-        {
-            SceneType.Offline => GameState.Offline,
-            SceneType.Room => GameState.Room,
-            SceneType.Online => GameState.Gameplay,
-            _ => throw new System.ArgumentException("Unknown type of sceneType")
-        };
+        _players = players;
+        NetworkController.ActionServerChangeScene(SceneType.Online);
     }
 
     [Server]
-    private void ServerSpawnPlayerCharacters(List<Transform> spawnPositions, Dictionary<int, NetworkConnection> owners)
+    private void OnServerSceneChanged(SceneType sceneType)
     {
-        spawnPositions.Shuffle();
-        int spawnIndexer = 0;
-        foreach (var keyValue in owners)
+        if (sceneType == SceneType.Online)
         {
-            NetworkConnection owner = keyValue.Value;
-            GameObject playerCharacter = Instantiate(_playerCharacterPrefab, spawnPositions[spawnIndexer++].position, Quaternion.identity);
-            NetworkServer.Spawn(playerCharacter);
+            ServerSpawnPlayerCharacters();
+        }
+    }
+
+    [Server]
+    private void ServerSpawnPlayerCharacters()
+    {
+        foreach (var kv in _players)
+        {
+            Player player = kv.Value;
+            Transform spawnPosition = NetworkController.ActionGetStartPosition();
+            GameObject playerCharacterGb = Instantiate(_playerCharacterPrefab, spawnPosition.position, Quaternion.identity);
+            NetworkServer.Spawn(playerCharacterGb);
+            NetworkIdentity playerCharacterId = playerCharacterGb.GetComponent<NetworkIdentity>();
+            player.ServerAssignCharacter(playerCharacterId);
         }
     }
 }

@@ -76,7 +76,7 @@ public class RoomPlayerUI : MonoBehaviour
     {
         _isLocalReady = !_isLocalReady;
         _readyStateButton.ChangeButtonText(_isLocalReady ? ReadyText : NotReadyText);
-        UIDelegatesContainer.EventLocalReadyStatusChange(_isLocalReady);
+        NetworkRoom.EventLocalReadyStatusChange(_isLocalReady);
     }
 
     public void OnOtherPlayerReadyStatusChanged(bool readyStatus)

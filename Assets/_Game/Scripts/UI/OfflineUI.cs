@@ -27,16 +27,16 @@ public class OfflineUI : MonoBehaviour
 
     private void OnStartHostButtonClicked()
     {
-        NetworkDelegatesContainer.StartHost();
+        NetworkController.ActionStartHost();
     }
 
     private void OnStartClientButtonClicked()
     { 
-        NetworkDelegatesContainer.StartClient();
+        NetworkController.ActionStartClient();
     }
 
     private void OnStartServerButtonClicked()
     {
-        NetworkDelegatesContainer.StartServer();
+        NetworkController.ActionStartServer();
     }
 }

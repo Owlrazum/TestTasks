@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Assertions;
 using Mirror;
 
 public class Player : NetworkBehaviour
@@ -20,31 +21,60 @@ public class Player : NetworkBehaviour
         set { _index = value; }
     }
 
+    private PlayerCharacter _character;
+
     private void Awake()
     {
         DontDestroyOnLoad(gameObject);
-    }
-
-    public override void OnStartLocalPlayer()
-    {
-        GameDelegatesContainer.LocalPlayerScoredPoint += OnLocalPlayerScoredPoint;
-        NetworkDelegatesContainer.RegisterPlayerInRoom(gameObject);
+        // NetworkRoom.NetworkRoomInitialized += OnNetworkRoomReady;
     }
 
     private void OnDestroy()
+    { 
+        // NetworkRoom.NetworkRoomInitialized -= OnNetworkRoomReady;
+    }
+
+    private void OnNetworkRoomReady()
     {
         if (isLocalPlayer)
-        {
-            GameDelegatesContainer.LocalPlayerScoredPoint -= OnLocalPlayerScoredPoint;
+        { 
+            NetworkRoom.ActionRegisterPlayerInRoom(gameObject);
         }
     }
 
-    private void OnLocalPlayerScoredPoint()
+    public void ServerAssignCharacter(NetworkIdentity playerCharacterNetId)
+    {
+        ClientRpcAssignCharacter(playerCharacterNetId);
+    }
+
+    [ClientRpc]
+    private void ClientRpcAssignCharacter(NetworkIdentity playerCharacterNetId)
+    { 
+        _character = playerCharacterNetId.gameObject.GetComponent<PlayerCharacter>();
+        Assert.IsNotNull(_character, $"Client has not found PlayerCharacter using {playerCharacterNetId}");
+        _character.EventHitOtherCharacter += OnCharacterHitOtherCharacter;
+    }
+
+    public void ServerDisposeCharacter()
+    {
+        ClientRpcDisposeCharacter();
+    }
+
+    [ClientRpc]
+    private void ClientRpcDisposeCharacter()
+    { 
+        _character.EventHitOtherCharacter -= OnCharacterHitOtherCharacter;
+        _character = null;
+    }
+
+    private void OnCharacterHitOtherCharacter()
+    {
+        CmdIncreaseScore();
+    }
+
+    [Command]
+    private void CmdIncreaseScore()
     {
         _score++;
-        if (_score == 3)
-        {
-            GameDelegatesContainer.LocalGameWon?.Invoke();
-        }
     }
 }

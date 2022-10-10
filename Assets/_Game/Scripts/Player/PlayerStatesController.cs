@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.Assertions;
 
@@ -10,6 +11,8 @@ public class PlayerStatesController
     public CharacterController Player { get; set; }
     private PlayerState _currentState;
     private PlayerAnimator _animator;
+
+    public Action<PlayerState> EventStateChanged;
 
     public PlayerStatesController(PlayerParamsSO playerParams, CharacterController controller, PlayerAnimator animator)
     {
@@ -33,7 +36,7 @@ public class PlayerStatesController
             newState.OnEnter();
             _currentState = newState;
 
-            GameDelegatesContainer.EventStateChanged?.Invoke(newState);
+            EventStateChanged?.Invoke(newState);
         }
     }
 
@@ -73,7 +76,7 @@ public class PlayerStatesController
             newState.OnEnter();
             _currentState = newState;
 
-            GameDelegatesContainer.EventStateChanged?.Invoke(newState);
+            EventStateChanged?.Invoke(newState);
         }
     }
 }

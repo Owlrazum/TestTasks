@@ -35,11 +35,11 @@ public class AddressInputField : MonoBehaviour
     {
         if (_isAddressGiven)
         { 
-            NetworkDelegatesContainer.UpdateNetworkAddress(_inputField.text);
+            NetworkController.ActionUpdateNetworkAddress(_inputField.text);
         }
         else
         { 
-            NetworkDelegatesContainer.UpdateNetworkAddress("localHost");
+            NetworkController.ActionUpdateNetworkAddress("localHost");
         }
     }
 }

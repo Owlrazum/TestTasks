@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 using Mirror;
@@ -17,6 +18,9 @@ public class PlayerCharacter : NetworkBehaviour
     [SerializeField]
     private Transform _followTransform;
 
+    public Action EventHitOtherCharacter; 
+    public Action EventStateChanged; // PubPlayerStatesController:
+
     private PlayerStatesController _statesController;
     private PlayerInputReceiver _playerInputReceiever;
     private PlayerRenderer _playerRenderer;
@@ -25,15 +29,13 @@ public class PlayerCharacter : NetworkBehaviour
     private bool _isInvincible;
     public bool IsInvincible { get { return _isInvincible; } }
 
-    public override void OnStartLocalPlayer()
-    {
-    }
-
     public override void OnStartClient()
     {
         if (hasAuthority)
         {
-            Camera camera = GameDelegatesContainer.GetRenderingCamera();
+            GameController.EventLocalPlayerCharacterSpawned?.Invoke(this);
+
+            Camera camera = CameraHolder.FuncGetCamera();
             camera.transform.position = transform.position + _playerParams.InitialCameraOffset;
             _cameraController = new CameraController(camera, _followTransform);
             _playerInputReceiever = new PlayerInputReceiver(_cameraController);
@@ -73,7 +75,7 @@ public class PlayerCharacter : NetworkBehaviour
         _statesController.OnHit(hit, out PlayerCharacter otherPlayer);
         if (otherPlayer != null && !otherPlayer.IsInvincible)
         {
-
+            EventHitOtherCharacter?.Invoke();
             otherPlayer.OnDashHit();
         }
     }

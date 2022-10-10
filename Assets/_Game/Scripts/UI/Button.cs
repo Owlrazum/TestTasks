@@ -68,7 +68,7 @@ public class Button : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler,
     
     public void OnPointerClick(PointerEventData data)
     {
-        if (!_canInteract)
+        if (!_canInteract || !gameObject.activeSelf)
         {
             return;
         }
@@ -79,7 +79,7 @@ public class Button : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler,
 
     public void OnPointerEnter(PointerEventData data)
     {
-        if (!_canInteract)
+        if (!_canInteract || !gameObject.activeSelf)
         {
             return;
         }
@@ -90,13 +90,25 @@ public class Button : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler,
 
     public void OnPointerExit(PointerEventData data)
     {
-        if (!_canInteract)
+        if (!_canInteract || !gameObject.activeSelf)
         {
             return;
         }
 
         _back.material.color = _defaultBack;
         _textMesh.color = _defaultText;
+    }
+
+    public void Show()
+    {
+        Debug.Log("Show start button");
+        gameObject.SetActive(true);
+    }
+
+    public void Hide()
+    {
+        Debug.Log("Hide start button");
+        gameObject.SetActive(false);
     }
 
     private void OnDestroy()

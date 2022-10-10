@@ -5,15 +5,16 @@ using TMPro;
 public class PlayerStateUIShower : MonoBehaviour
 {
     private TextMeshProUGUI _textMesh;
+    
     private void Awake()
     {
         TryGetComponent(out _textMesh);
-        GameDelegatesContainer.EventStateChanged += OnStateChanged;
+        GameController.EventStateChanged += OnStateChanged;
     }
 
     private void OnDestroy()
     { 
-        GameDelegatesContainer.EventStateChanged -= OnStateChanged;
+        GameController.EventStateChanged -= OnStateChanged;
     }
 
     private void OnStateChanged(PlayerState state)
