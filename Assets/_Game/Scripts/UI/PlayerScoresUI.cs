@@ -11,6 +11,7 @@ public class PlayerScoresUI : NetworkBehaviour
     private TextMeshProUGUI[] _textMeshes; // assumption: sorted by their vertical position
     private List<PlayerScore> _playerScores; // key: playerIndex
 
+    private int MaxTextMeshCount;
     private struct PlayerScore : IComparable<PlayerScore>, IEquatable<PlayerScore>
     {
         public int PlayerIndex;
@@ -40,6 +41,11 @@ public class PlayerScoresUI : NetworkBehaviour
         {
             return Amount.Equals(other.Amount);
         }
+    }
+
+    private void Awake()
+    {
+        MaxTextMeshCount = transform.GetChild(0).childCount;
     }
 
     public override void OnStartServer()
@@ -73,11 +79,19 @@ public class PlayerScoresUI : NetworkBehaviour
         foreach (var kv in players)
         {
             int playerIndex = kv.Key;
-            Assert.IsTrue(playerIndex < _textMeshes.Length, "The player index is out of bounds for textMeshes array!"); // perhaps redesign of player indexing will be needed in such case.
+            Assert.IsTrue(playerIndex < MaxTextMeshCount, "The player index is out of bounds for textMeshes array!"); // perhaps redesign of player indexing will be needed in such case.
             Player player = kv.Value;
             PlayerScore score = new PlayerScore(playerIndex, player.Name, 0);
             _playerScores.AddSorted(score);
             ClientRpcUpdateTextMesh(playerIndex, score);
+        }
+
+        if (players.Count < 4)
+        {
+            for (int i = players.Count; i < MaxTextMeshCount; i++)
+            {
+                ClientRpcRemoveTextMesh(i);
+            }
         }
     }
 
@@ -85,6 +99,12 @@ public class PlayerScoresUI : NetworkBehaviour
     private void ClientRpcUpdateTextMesh(int place, PlayerScore score)
     {
         _textMeshes[place].text = score.PlayerName + $": {score.Amount}";
+    }
+
+    [ClientRpc]
+    private void ClientRpcRemoveTextMesh(int place)
+    {
+        _textMeshes[place].gameObject.SetActive(false);
     }
 
     [Server]

@@ -101,13 +101,11 @@ public class Button : MonoBehaviour, IPointerClickHandler, IPointerEnterHandler,
 
     public void Show()
     {
-        Debug.Log("Show start button");
         gameObject.SetActive(true);
     }
 
     public void Hide()
     {
-        Debug.Log("Hide start button");
         gameObject.SetActive(false);
     }
 

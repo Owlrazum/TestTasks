@@ -26,8 +26,7 @@ public class RoomPlayerUI : MonoBehaviour
     private const string ReadyText = "Ready";
     private const string NotReadyText = "NotReady";
 
-    private bool _isLocal;
-    private bool _isLocalReady;
+    private Player _playerToShow;
 
     private void Awake()
     {
@@ -46,21 +45,24 @@ public class RoomPlayerUI : MonoBehaviour
         _localPlayerName.text = newName;
     }
 
-    public void Show(bool isLocal, string playerName)
+    public void Show(Player player)
     {
-        _isLocal = isLocal;
+        _playerToShow = player;
         _canvasGroup.alpha = 1;
 
-        if (isLocal)
+        _playerToShow.EventReadyStatusChanged += OnPlayerToShowReadyStatusChange;
+        _playerToShow.EventNameChanged += OnPlayerToShowNameChange;
+
+        if (_playerToShow.IsLocalPlayer)
         {
             _localPlayerName.transform.parent.gameObject.SetActive(true);
             _otherPlayerName.transform.parent.gameObject.SetActive(false);
             _readyStateButton.CanInteract = true;
             _readyStateButton.OnClick += OnLocalPlayerReadyButtonClicked;
-            
+
             _localNameInputField.Activate();
             _localNameInputField.EventOnValueChanged += OnLocalNameChanged;
-            _localPlayerName.text = playerName;
+            _localPlayerName.text = _playerToShow.Name;
         }
         else
         {
@@ -68,59 +70,91 @@ public class RoomPlayerUI : MonoBehaviour
             _localPlayerName.transform.parent.gameObject.SetActive(false);
             _localNameInputField.gameObject.SetActive(false);
 
-            Assert.IsNotNull(playerName);
-            _otherPlayerName.text = playerName;
+            _otherPlayerName.text = _playerToShow.Name;
         }
     }
 
     private void OnDestroy()
-    { 
-        if (_isLocal)
+    {
+        if (_playerToShow == null)
+        {
+            return;
+        }
+
+        UnsubscribeFromEvents();
+    }
+
+    public void Hide()
+    {
+        _canvasGroup.alpha = _hideAlphaValue;
+        _localPlayerName.transform.parent.gameObject.SetActive(false);
+        _otherPlayerName.transform.parent.gameObject.SetActive(false);
+
+        _localNameInputField.DeactivateInputField();
+        _localNameInputField.gameObject.SetActive(false);
+
+        UnsubscribeFromEvents();
+        _playerToShow = null;
+    }
+
+    private void UnsubscribeFromEvents()
+    {
+        Assert.IsNotNull(_playerToShow, "No _playerToShow to hide!");
+        _playerToShow.EventReadyStatusChanged -= OnPlayerToShowReadyStatusChange;
+        _playerToShow.EventNameChanged -= OnPlayerToShowNameChange;
+
+        if (_playerToShow.IsLocalPlayer)
         {
             _readyStateButton.OnClick -= OnLocalPlayerReadyButtonClicked;
             _localNameInputField.EventOnValueChanged -= OnLocalNameChanged;
         }
     }
 
-    public void Hide()
-    {
-        _canvasGroup.alpha = _hideAlphaValue;
-        Debug.Log("hh");
-        _localPlayerName.transform.parent.gameObject.SetActive(false);
-        _otherPlayerName.transform.parent.gameObject.SetActive(true);
-
-        _localNameInputField.DeactivateInputField();
-        _localNameInputField.gameObject.SetActive(false);
-    }
-
     private void OnLocalPlayerReadyButtonClicked()
     {
-        _isLocalReady = !_isLocalReady;
-        _readyStateButton.ChangeButtonText(_isLocalReady ? ReadyText : NotReadyText);
-        
+        NetworkRoom.ActionChangeLocalPlayerReadyStatus();
         string playerName = _localNameInputField.GetPlayerName();
-        _localPlayerName.text = playerName;
-
-        if (_isLocalReady)
-        {
-            _localNameInputField.DeactivateInputField();
-            _localNameInputField.gameObject.SetActive(false);
-        }
-        else
-        { 
-            _localNameInputField.Activate();
-            _localNameInputField.gameObject.SetActive(true);   
-        }
-
-        NetworkRoom.EventLocalReadyStatusChange(_isLocalReady, playerName);
-    }
-
-    public void OnOtherPlayerReadyStatusChanged(bool readyStatus, string playerName = null)
-    {
-        _readyStateButton.ChangeButtonText(readyStatus ? ReadyText : NotReadyText);
         if (playerName != null)
         {
-            _otherPlayerName.text = playerName;
+            NetworkRoom.ActionChangeLocalPlayerName(playerName);
+        }
+    }
+
+    private void OnPlayerToShowReadyStatusChange(bool newReadyStatus)
+    {
+        if (newReadyStatus)
+        {
+            _readyStateButton.ChangeButtonText(ReadyText);
+            if (_playerToShow.IsLocalPlayer)
+            {
+                _localNameInputField.DeactivateInputField();
+                _localNameInputField.gameObject.SetActive(false);
+            }
+        }
+        else
+        {
+            _readyStateButton.ChangeButtonText(NotReadyText);
+            if (_playerToShow.IsLocalPlayer)
+            {
+                _localNameInputField.Activate();
+                _localNameInputField.gameObject.SetActive(true);
+            }
+        }
+    }
+
+    private void OnPlayerToShowNameChange(string newName)
+    {
+        if (_playerToShow == null)
+        {
+            return;
+        }
+        if (_playerToShow.IsLocalPlayer)
+        {
+            _localPlayerName.text = newName;
+        }
+        else
+        {
+            _otherPlayerName.text = newName;
         }
     }
 }

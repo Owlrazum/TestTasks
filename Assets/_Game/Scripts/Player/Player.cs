@@ -6,15 +6,7 @@ using Mirror;
 
 public class Player : NetworkBehaviour
 {
-    [SyncVar]
-    private int _index; // should be set only in network room
-    public int Index
-    {
-        get { return _index; }
-        set { _index = value; }
-    }
-
-    [SyncVar]
+    [SyncVar(hook = nameof(OnNameChange))]
     private string _name; // should be set only in network room
     public string Name
     {
@@ -22,10 +14,23 @@ public class Player : NetworkBehaviour
         set { _name = value; }
     }
 
-    public bool IsReady { get; set; }
+    [SyncVar(hook = nameof(OnReadyStatusChange))]
+    private bool _isReady; // should be set only in network room
+    public bool IsReady
+    {
+        get { return _isReady; }
+        set { _isReady = value; }
+    }
+
+    public int Index { get; set; } // syncronised manually due to mess with syncVars and Rpcs used together.
+    public bool IsLocalPlayer { get { return isLocalPlayer; } }
 
     private PlayerCharacter _character;
     public static Action<PlayerState> EventLocalPlayerStateChanged; // hook for PlayerStateUIShower
+
+    public Action<Player, int, int> EventIndexChanged;
+    public Action<string> EventNameChanged;
+    public Action<bool> EventReadyStatusChanged;
 
     private void Awake()
     {
@@ -34,7 +39,17 @@ public class Player : NetworkBehaviour
 
     public override void OnStartLocalPlayer()
     {
-        NetworkRoom.ActionRegisterPlayerInRoom(gameObject);
+        NetworkRoom.ActionRegisterPlayerInRoom(netIdentity);
+    }
+
+    private void OnNameChange(string oldName, string newName)
+    { 
+        EventNameChanged?.Invoke(newName);
+    }
+
+    private void OnReadyStatusChange(bool oldReadyStatus, bool newReadyStatus)
+    {
+        EventReadyStatusChanged?.Invoke(newReadyStatus);
     }
 
     [Server]
@@ -46,11 +61,10 @@ public class Player : NetworkBehaviour
 
     [TargetRpc]
     private void TargetRpcAssignCharacter(NetworkConnection conn, NetworkIdentity playerCharacterNetId)
-    { 
+    {
         _character = playerCharacterNetId.gameObject.GetComponent<PlayerCharacter>();
         Assert.IsNotNull(_character, $"Client has not found PlayerCharacter using {playerCharacterNetId}");
         _character.EventHitOtherCharacter += OnCharacterHitOtherCharacter;
-        Debug.Log("OnPlayerAssign target");
         _character.OnLocalPlayerAssign();
         EventLocalPlayerStateChanged = _character.EventStateChanged;
     }
@@ -63,7 +77,7 @@ public class Player : NetworkBehaviour
 
     [ClientRpc]
     private void ClientRpcDisposeCharacter()
-    { 
+    {
         _character.EventHitOtherCharacter -= OnCharacterHitOtherCharacter;
         _character = null;
     }
@@ -76,6 +90,6 @@ public class Player : NetworkBehaviour
     [Command]
     private void CmdIncreaseScore()
     {
-        GameController.ServerPlayerIncreasedScore?.Invoke(_index);
+        GameController.ServerPlayerIncreasedScore?.Invoke(Index);
     }
 }

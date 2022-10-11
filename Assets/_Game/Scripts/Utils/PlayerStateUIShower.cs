@@ -19,7 +19,6 @@ public class PlayerStateUIShower : MonoBehaviour
 
     private void OnStateChanged(PlayerState state)
     {
-        Debug.Log("OnStateChanged");
         _textMesh.text = state.ToString();
     }
 }

@@ -30,7 +30,6 @@ public class PlayerDashState : PlayerState
             _remainingDistance <= 0)
             {
                 _isDashing = false;
-                Debug.Log("MaxSpeeed");
                 moveCommand.ShouldStartAtMaxSpeed = true;
                 _statesController.MoveState.ReactToCommand(moveCommand);
                 return _statesController.MoveState;

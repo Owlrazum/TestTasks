@@ -9,21 +9,53 @@ public class RoomUI : MonoBehaviour
 
     [SerializeField]
     private Button _startButton;
+
     private List<RoomPlayerUI> _roomPlayersUI;
+    private Dictionary<Player, int> _playerToRoomPlayerUI;
 
     private void Awake()
     {
-        NetworkRoom.EventLocalPlayerAssignedIndex += ShowLocalPlayerSlot;
-        NetworkRoom.EventOtherPlayerRegisteredInRoom += ShowOtherPlayerSlot;
-        NetworkRoom.EventOtherPlayerUnregisteredInRoom += HideOtherPlayerSlot;
-        NetworkRoom.EventOtherClientReadyStatusChanged += OnOtherPlayerReadyStatusChanged;
+        NetworkRoom.EventPlayerRegistered += ShowPlayerSlot;
+        // NetworkRoom.EventOtherPlayerUnregisteredInRoom += HideOtherPlayerSlot;
 
         NetworkRoom.ActionShowStartButton += ShowStartButton;
         NetworkRoom.ActionHideStartButton += HideStartButton;
         NetworkRoom.ActionAllowStartButton += AllowStartButton;
         NetworkRoom.ActionDenyStartButton += DenyStartButton;
 
-        InitializeRoomPlayersUIList();
+        InitializeContainers();
+    }
+
+    private void OnDestroy()
+    {
+        NetworkRoom.EventPlayerRegistered -= ShowPlayerSlot;
+        // NetworkRoom.EventOtherPlayerUnregisteredInRoom -= HideOtherPlayerSlot;
+
+        NetworkRoom.ActionShowStartButton -= ShowStartButton;
+        NetworkRoom.ActionHideStartButton -= HideStartButton;
+        NetworkRoom.ActionAllowStartButton -= AllowStartButton;
+        NetworkRoom.ActionDenyStartButton -= DenyStartButton;
+
+        if (_playerToRoomPlayerUI.Count > 0)
+        {
+            foreach (var kv in _playerToRoomPlayerUI)
+            {
+                Player player = kv.Key;
+                player.EventIndexChanged -= OnPlayerIndexChanged;
+            }
+        }
+    }
+
+    private void InitializeContainers()
+    {
+        _roomPlayersUI = new List<RoomPlayerUI>(_roomPlayersUIParent.childCount);
+        for (int i = 0; i < _roomPlayersUIParent.childCount; i++)
+        {
+            _roomPlayersUI.Add(_roomPlayersUIParent.GetChild(i).GetComponent<RoomPlayerUI>());
+            Assert.IsNotNull(_roomPlayersUI[i]);
+        }
+
+        _playerToRoomPlayerUI = new Dictionary<Player, int>(4);
     }
 
     private void Start()
@@ -37,48 +69,23 @@ public class RoomUI : MonoBehaviour
         NetworkRoom.EventStartGameButtonPress();
     }
 
-    private void InitializeRoomPlayersUIList()
+    private void ShowPlayerSlot(Player player)
     {
-        _roomPlayersUI = new List<RoomPlayerUI>(_roomPlayersUIParent.childCount);
-        for (int i = 0; i < _roomPlayersUIParent.childCount; i++)
-        {
-            _roomPlayersUI.Add(_roomPlayersUIParent.GetChild(i).GetComponent<RoomPlayerUI>());
-            Assert.IsNotNull(_roomPlayersUI[i]);
-        }
+        _roomPlayersUI[player.Index].Show(player);
+        player.EventIndexChanged += OnPlayerIndexChanged;
+        _playerToRoomPlayerUI.Add(player, player.Index);
     }
 
-    private void OnDestroy()
+    private void OnPlayerIndexChanged(Player movedPlayer, int oldIndex, int newIndex)
     {
-        NetworkRoom.EventLocalPlayerAssignedIndex -= ShowLocalPlayerSlot;
-        NetworkRoom.EventOtherPlayerRegisteredInRoom -= ShowOtherPlayerSlot;
-        NetworkRoom.EventOtherPlayerUnregisteredInRoom -= HideOtherPlayerSlot;
-        NetworkRoom.EventOtherClientReadyStatusChanged -= OnOtherPlayerReadyStatusChanged;
-
-        NetworkRoom.ActionShowStartButton -= ShowStartButton;
-        NetworkRoom.ActionHideStartButton -= HideStartButton;
-        NetworkRoom.ActionAllowStartButton -= AllowStartButton;
-        NetworkRoom.ActionDenyStartButton -= DenyStartButton;
+        // _roomPlayersUI[oldIndex].Hide();
+        // _roomPlayersUI[newIndex].Show(movedPlayer);
     }
 
-    private void ShowLocalPlayerSlot(int index, string playerName)
-    {
-        _roomPlayersUI[index].Show(true, playerName);
-    }
-
-    private void ShowOtherPlayerSlot(int index, string playerName)
-    {
-        _roomPlayersUI[index].Show(false, playerName);
-    }
-
-    private void HideOtherPlayerSlot(int index)
-    {
-        _roomPlayersUI[index].Hide();
-    }
-
-    private void OnOtherPlayerReadyStatusChanged(int index, bool readyStatus, string playerName)
-    {
-        _roomPlayersUI[index].OnOtherPlayerReadyStatusChanged(readyStatus, playerName);
-    }
+    // private void HideOtherPlayerSlot(int index)
+    // {
+    //     _roomPlayersUI[index].Hide();
+    // }
 
     private void ShowStartButton()
     {
