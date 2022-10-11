@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 public static class Utils
 {
@@ -14,5 +15,15 @@ public static class Utils
             list[j] = list[i];
             list[i] = value;
         }
+    }
+
+    /// <summary>
+    /// returns index of insertion
+    /// </summary>
+    public static int AddSorted<T>(this List<T> list, T value)
+    {
+        int index = list.BinarySearch(value);
+        list.Insert((index >= 0) ? index : ~index, value);
+        return index;
     }
 }

@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Assertions;
+using TMPro;
 
 [RequireComponent(typeof(CanvasGroup))]
 public class RoomPlayerUI : MonoBehaviour
@@ -7,9 +8,19 @@ public class RoomPlayerUI : MonoBehaviour
     [SerializeField]
     private float _hideAlphaValue = 0.25f;
 
-    private Transform _localPlayerUI;
-    private Transform _otherPlayerUI;
+    [Header("References")]
+    [SerializeField]
+    private TextMeshProUGUI _localPlayerName;
+
+    [SerializeField]
+    private TextMeshProUGUI _otherPlayerName;
+
+    [SerializeField]
     private Button _readyStateButton;
+
+    [SerializeField]
+    private NameInputField _localNameInputField;
+
     private CanvasGroup _canvasGroup;
 
     private const string ReadyText = "Ready";
@@ -20,39 +31,54 @@ public class RoomPlayerUI : MonoBehaviour
 
     private void Awake()
     {
-        _localPlayerUI = transform.GetChild(0);
-        _otherPlayerUI = transform.GetChild(1);
-
-        _localPlayerUI.gameObject.SetActive(false);
-        _otherPlayerUI.gameObject.SetActive(false);
-
-        _readyStateButton = transform.GetChild(2).GetComponent<Button>();
-
-        Assert.IsTrue(_localPlayerUI.name == "LocalPlayer" && _otherPlayerUI.name == "OtherPlayer" && _readyStateButton != null,
-            "RoomPlayerUI assumes the order of its children to be first local, second other playerUI, third ready state button");
+        _localPlayerName.transform.parent.gameObject.SetActive(false); // parent because of background
+        _otherPlayerName.transform.parent.gameObject.SetActive(false);
+        _readyStateButton.CanInteract = false;
+        _localNameInputField.DeactivateInputField();
 
         TryGetComponent(out _canvasGroup);
 
-        _readyStateButton.CanInteract = false;
         _canvasGroup.alpha = _hideAlphaValue;
     }
 
-    public void Show(bool isLocal)
+    private void OnLocalNameChanged(string newName)
+    {
+        _localPlayerName.text = newName;
+    }
+
+    public void Show(bool isLocal, string playerName)
     {
         _isLocal = isLocal;
         _canvasGroup.alpha = 1;
 
         if (isLocal)
         {
-            _localPlayerUI.gameObject.SetActive(true);
-            _otherPlayerUI.gameObject.SetActive(false);
+            _localPlayerName.transform.parent.gameObject.SetActive(true);
+            _otherPlayerName.transform.parent.gameObject.SetActive(false);
             _readyStateButton.CanInteract = true;
             _readyStateButton.OnClick += OnLocalPlayerReadyButtonClicked;
+            
+            _localNameInputField.Activate();
+            _localNameInputField.EventOnValueChanged += OnLocalNameChanged;
+            _localPlayerName.text = playerName;
         }
         else
         {
-            _otherPlayerUI.gameObject.SetActive(true);
-            _localPlayerUI.gameObject.SetActive(false);
+            _otherPlayerName.transform.parent.gameObject.SetActive(true);
+            _localPlayerName.transform.parent.gameObject.SetActive(false);
+            _localNameInputField.gameObject.SetActive(false);
+
+            Assert.IsNotNull(playerName);
+            _otherPlayerName.text = playerName;
+        }
+    }
+
+    private void OnDestroy()
+    { 
+        if (_isLocal)
+        {
+            _readyStateButton.OnClick -= OnLocalPlayerReadyButtonClicked;
+            _localNameInputField.EventOnValueChanged -= OnLocalNameChanged;
         }
     }
 
@@ -60,27 +86,41 @@ public class RoomPlayerUI : MonoBehaviour
     {
         _canvasGroup.alpha = _hideAlphaValue;
         Debug.Log("hh");
-        _localPlayerUI.gameObject.SetActive(false);
-        _otherPlayerUI.gameObject.SetActive(true);
-    }
+        _localPlayerName.transform.parent.gameObject.SetActive(false);
+        _otherPlayerName.transform.parent.gameObject.SetActive(true);
 
-    private void OnDestroy()
-    {
-        if (_isLocal)
-        {
-            _readyStateButton.OnClick -= OnLocalPlayerReadyButtonClicked;
-        }
+        _localNameInputField.DeactivateInputField();
+        _localNameInputField.gameObject.SetActive(false);
     }
 
     private void OnLocalPlayerReadyButtonClicked()
     {
         _isLocalReady = !_isLocalReady;
         _readyStateButton.ChangeButtonText(_isLocalReady ? ReadyText : NotReadyText);
-        NetworkRoom.EventLocalReadyStatusChange(_isLocalReady);
+        
+        string playerName = _localNameInputField.GetPlayerName();
+        _localPlayerName.text = playerName;
+
+        if (_isLocalReady)
+        {
+            _localNameInputField.DeactivateInputField();
+            _localNameInputField.gameObject.SetActive(false);
+        }
+        else
+        { 
+            _localNameInputField.Activate();
+            _localNameInputField.gameObject.SetActive(true);   
+        }
+
+        NetworkRoom.EventLocalReadyStatusChange(_isLocalReady, playerName);
     }
 
-    public void OnOtherPlayerReadyStatusChanged(bool readyStatus)
+    public void OnOtherPlayerReadyStatusChanged(bool readyStatus, string playerName = null)
     {
         _readyStateButton.ChangeButtonText(readyStatus ? ReadyText : NotReadyText);
+        if (playerName != null)
+        {
+            _otherPlayerName.text = playerName;
+        }
     }
 }

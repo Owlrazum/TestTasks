@@ -13,15 +13,12 @@ public enum GameState
 
 public class GameController : NetworkBehaviour
 {
-    public static Action<Dictionary<int, Player>> ActionServerGameStart;
+    public static Action<Dictionary<int, Player>> ActionServerGameStart; // pub is NetworkRoom.
+    public static Action<Dictionary<int, Player>> EventServerGameStarted; // pub is GameController
 
-    public static Action<PlayerCharacter> EventLocalPlayerCharacterSpawned;
-    public static Action EventLocalPlayerCharacterDespawned;
+    public static Action<int> ServerPlayerIncreasedScore;
 
-    public static Func<Camera> GetRenderingCamera;
-    public static Action<PlayerState> EventStateChanged;
-
-    public static Action LocalPlayerScoredPoint;
+    private const int WinScoresAmount = 3;
 
     private GameState _state;
     public GameState GetState()
@@ -32,7 +29,8 @@ public class GameController : NetworkBehaviour
     [SerializeField]
     private GameObject _playerCharacterPrefab;
 
-    private Dictionary<int, Player> _players; // server-only
+    private Dictionary<int, Player> _players; // server-only, with playerIndex as key
+    private Dictionary<int, int> _scores; // server-only, with playerIndex as key
     private int _readyPlayerCount;
 
     private void Awake()
@@ -45,12 +43,14 @@ public class GameController : NetworkBehaviour
         _readyPlayerCount = 0;
 
         ActionServerGameStart += ServerGameStart;
+        ServerPlayerIncreasedScore += OnPlayerIncreasedScore;
         NetworkController.EventServerSceneChanged += OnServerSceneChanged;
     }
 
     public override void OnStopServer()
     { 
         ActionServerGameStart -= ServerGameStart;
+        ServerPlayerIncreasedScore -= OnPlayerIncreasedScore;
         NetworkController.EventServerSceneChanged -= OnServerSceneChanged;
     }
 
@@ -68,7 +68,28 @@ public class GameController : NetworkBehaviour
     private void ServerGameStart(Dictionary<int, Player> players)
     {
         _players = players;
+        _scores = new Dictionary<int, int>();
+        foreach (var kv in _players)
+        {
+            _scores.Add(kv.Key, 0);
+        }
+
         NetworkController.ActionServerChangeScene(SceneType.Online);
+    }
+
+    [Server]
+    private void OnPlayerIncreasedScore(int playerIndex)
+    {
+        _scores[playerIndex]++;
+        if (_scores[playerIndex] >= WinScoresAmount)
+        {
+            EndGame(playerIndex);
+        }
+    }
+
+    private void EndGame(int winnerPlayerIndex)
+    {
+        Debug.Log($"Game ended, player {winnerPlayerIndex} won!");
     }
 
     [Server]
@@ -106,6 +127,7 @@ public class GameController : NetworkBehaviour
         if (_readyPlayerCount == _players.Count)
         {
             ServerSpawnPlayerCharacters();
+            EventServerGameStarted?.Invoke(_players);
             _readyPlayerCount = 0;
         }
 

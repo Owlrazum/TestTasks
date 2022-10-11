@@ -8,12 +8,12 @@ using Mirror;
 public class NetworkRoom : NetworkBehaviour
 {
     #region Publish
-    public static Action<int> EventOtherPlayerRegisteredInRoom;
-    public static Action<int> EventLocalPlayerAssignedIndex;
+    public static Action<int, string> EventOtherPlayerRegisteredInRoom;
+    public static Action<int, string> EventLocalPlayerAssignedIndex;
     public static Action<int> EventOtherPlayerUnregisteredInRoom;
 
     public static Action<int, bool> NotifyClientReadyStatusChange;
-    public static Action<int, bool> EventOtherClientReadyStatusChanged;
+    public static Action<int, bool, string> EventOtherClientReadyStatusChanged;
 
     public static Action ActionShowStartButton;
     public static Action ActionHideStartButton;
@@ -23,14 +23,14 @@ public class NetworkRoom : NetworkBehaviour
 
     #region Subscribe
     public static Action<GameObject> ActionRegisterPlayerInRoom;
-    public static Action<bool> EventLocalReadyStatusChange;
+    public static Action<bool, string> EventLocalReadyStatusChange; // we get player name on positive ready status change
     public static Action EventStartGameButtonPress;
     #endregion
 
     [SerializeField]
     private int _minimumReadyPlayerCount = 2;
 
-    private Dictionary<int, Player> _players;
+    private Dictionary<int, Player> _playersServer;
     private Player _hostPlayer;
 
     private int _serverPlayerCount;
@@ -42,7 +42,7 @@ public class NetworkRoom : NetworkBehaviour
 
     public override void OnStartServer()
     {
-        _players = new Dictionary<int, Player>();
+        _playersServer = new Dictionary<int, Player>();
         _serverPlayerCount = 0;
         _readyPlayerCount = 0;
     }
@@ -76,6 +76,8 @@ public class NetworkRoom : NetworkBehaviour
         Assert.IsNotNull(newPlayer);
         int newIndex = _serverPlayerCount;
         newPlayer.Index = newIndex;
+        string newName = $"Player {newIndex}";
+        newPlayer.Name = newName;
         _serverPlayerCount++;
         if (_serverPlayerCount == 1)
         {
@@ -87,41 +89,47 @@ public class NetworkRoom : NetworkBehaviour
             TargetHideStartButton(newPlayer.connectionToClient);
         }
 
-        foreach (var keyValue in _players)
+        foreach (var keyValue in _playersServer)
         {
             int playerIndex = keyValue.Key;
             NetworkConnectionToClient connection = keyValue.Value.connectionToClient;
-            TargetOtherPlayerAdded(connection, newIndex);
-            TargetOtherPlayerAdded(newPlayer.connectionToClient, playerIndex);
+            string playerName = keyValue.Value.Name;
+            TargetOtherPlayerAdded(connection, newIndex, newName);
+            TargetOtherPlayerAdded(newPlayer.connectionToClient, playerIndex, playerName);
         }
 
-        _players.Add(newIndex, newPlayer);
-        TargetLocalPlayerAdded(newPlayer.connectionToClient, newIndex);
+        _playersServer.Add(newIndex, newPlayer);
+        TargetLocalPlayerAdded(newPlayer.connectionToClient, newIndex, newName);
     }
     [TargetRpc]
-    private void TargetOtherPlayerAdded(NetworkConnection connection, int playerIndex)
+    private void TargetOtherPlayerAdded(NetworkConnection connection, int playerIndex, string playerName)
     {
-        EventOtherPlayerRegisteredInRoom(playerIndex);
+        EventOtherPlayerRegisteredInRoom(playerIndex, playerName);
     }
     [TargetRpc]
-    private void TargetLocalPlayerAdded(NetworkConnection connection, int playerIndex)
+    private void TargetLocalPlayerAdded(NetworkConnection connection, int playerIndex, string playerName)
     {
         _clientLocalPlayerIndex = playerIndex;
-        EventLocalPlayerAssignedIndex(playerIndex);
+        EventLocalPlayerAssignedIndex(playerIndex, playerName);
     }
     #endregion
 
     #region ReadyStatus
-    private void OnLocalReadyStatusChange(bool newReadyStatus)
+    private void OnLocalReadyStatusChange(bool newReadyStatus, string playerName)
     {
-        CmdClientReadyStatusChanged(_clientLocalPlayerIndex, newReadyStatus);
+        CmdClientReadyStatusChanged(_clientLocalPlayerIndex, newReadyStatus, playerName);
     }
+
     [Command(requiresAuthority = false)]
-    private void CmdClientReadyStatusChanged(int clientIndex, bool newReadyStatus)
+    private void CmdClientReadyStatusChanged(int clientIndex, bool newReadyStatus, string playerName)
     {
         if (newReadyStatus)
         {
             _readyPlayerCount++;
+            if (playerName != null)
+            { 
+                _playersServer[clientIndex].Name = playerName;
+            }
         }
         else
         {
@@ -139,12 +147,12 @@ public class NetworkRoom : NetworkBehaviour
             TargetDenyStartButton(_hostPlayer.connectionToClient);
         }
 
-        RpcClientReadyStatusChanged(clientIndex, newReadyStatus);
+        RpcClientReadyStatusChanged(clientIndex, newReadyStatus, playerName);
     }
     [ClientRpc(includeOwner = false)]
-    private void RpcClientReadyStatusChanged(int clientIndex, bool readyStatus)
+    private void RpcClientReadyStatusChanged(int clientIndex, bool readyStatus, string playerName)
     {
-        EventOtherClientReadyStatusChanged?.Invoke(clientIndex, readyStatus);
+        EventOtherClientReadyStatusChanged?.Invoke(clientIndex, readyStatus, playerName);
     }
     [TargetRpc]
     private void TargetShowStartButton(NetworkConnection connection)
@@ -176,6 +184,6 @@ public class NetworkRoom : NetworkBehaviour
     [Command(requiresAuthority = false)]
     private void CmdStartGame()
     {
-        GameController.ActionServerGameStart(_players);
+        GameController.ActionServerGameStart(_playersServer);
     }
 }

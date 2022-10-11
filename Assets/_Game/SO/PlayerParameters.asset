@@ -15,7 +15,7 @@ MonoBehaviour:
   _dashDistance: 6
   _dashHitColorSwitchTime: 1
   _syncTime: 0.1
-  _gravity: 9.81
+  _gravity: 15
   _maxMoveSpeed: 4
   _rotationSpeedDeg: 360
   _acceleration: 5

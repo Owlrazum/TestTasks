@@ -19,30 +19,37 @@ public class PlayerCharacter : NetworkBehaviour
     private Transform _followTransform;
 
     public Action EventHitOtherCharacter;
-    public Action EventStateChanged; // PubPlayerStatesController:
+    public Action<PlayerState> EventStateChanged; // PubPlayerStatesController:
 
     private PlayerStatesController _statesController;
     private PlayerInputReceiver _playerInputReceiever;
     private PlayerRenderer _playerRenderer;
     private CameraController _cameraController;
 
-    private bool _isInvincible;
-    public bool IsInvincible { get { return _isInvincible; } }
+    [SyncVar(hook = nameof(OnInvincibilityChange))]
+    private bool _isInvincibleSyncVar;
+    public bool IsInvincible { get { return _isInvincibleSyncVar; } }
 
-    private float _syncTimer;
-
-    public override void OnStartClient()
+    public override void OnStartServer()
     {
         PlayerAnimator animator = new PlayerAnimator(_animator, _playerParams);
         CharacterController controller = GetComponent<CharacterController>();
         _statesController = new PlayerStatesController(_playerParams, controller, animator);
+        EventStateChanged = _statesController.EventStateChanged;
+
         _playerRenderer = new PlayerRenderer(_playerParams, _renderer);
     }
 
-    public void OnPlayerAssign()
+    public override void OnStartClient()
     {
-        GameController.EventLocalPlayerCharacterSpawned?.Invoke(this);
+        // clients only need to update renderer, 
+        // the rest is updated on server through
+        // NetworkTransform, NetworkAnimator
+        _playerRenderer = new PlayerRenderer(_playerParams, _renderer);
+    }
 
+    public void OnLocalPlayerAssign()
+    {
         Camera camera = CameraHolder.FuncGetCamera();
         camera.transform.position = transform.position + _playerParams.InitialCameraOffset;
         _cameraController = new CameraController(camera, _followTransform);
@@ -55,17 +62,15 @@ public class PlayerCharacter : NetworkBehaviour
         {
             PlayerCommand command = _playerInputReceiever.GetCommand();
             CmdInputCommand(command);
-            _statesController.ReactToCommand(command);
-            _statesController.Update();
-
-            _syncTimer += Time.deltaTime;
-            if (_syncTimer > _playerParams.SyncTime)
-            {
-                _syncTimer = 0;
-                CmdSyncPosition(transform.position);
-            }
         }
     }   
+
+    [Command]
+    private void CmdInputCommand(PlayerCommand command)
+    {
+        _statesController.ReactToCommand(command);
+        _statesController.Update();
+    }
 
     private void LateUpdate()
     {
@@ -77,15 +82,21 @@ public class PlayerCharacter : NetworkBehaviour
 
     private void OnControllerColliderHit(ControllerColliderHit hit)
     {
+        if (!isServer)
+        {
+            return;
+        }
+
         if (hit.gameObject.layer != Layers.Player)
         {
             return;
         }
-        _statesController.OnHit(hit, out PlayerCharacter otherPlayer);
-        if (otherPlayer != null && !otherPlayer.IsInvincible)
+
+        _statesController.OnHit(hit, out PlayerCharacter otherPlayerCharacter);
+        if (otherPlayerCharacter != null && !otherPlayerCharacter.IsInvincible)
         {
             EventHitOtherCharacter?.Invoke();
-            otherPlayer.OnDashHit();
+            otherPlayerCharacter.OnDashHit();
         }
     }
 
@@ -96,40 +107,13 @@ public class PlayerCharacter : NetworkBehaviour
 
     private IEnumerator InvincibilityTimer()
     {
-        SetInvincibility(true);
+        _isInvincibleSyncVar = true;
         yield return new WaitForSeconds(_playerParams.DashHitColorSwitchTime);
-        SetInvincibility(false);
+        _isInvincibleSyncVar = false;
     }
 
-    private void SetInvincibility(bool isInvincible)
+    private void OnInvincibilityChange(bool oldValue, bool newValue)
     {
-        Debug.Log($"I am {isInvincible}");
-        _isInvincible = isInvincible;
-        _playerRenderer.OnInvincibilityChange(isInvincible);
-    }
-
-    [Command]
-    private void CmdInputCommand(PlayerCommand command)
-    {
-        RpcInputCommand(command);
-    }
-
-    [Command]
-    private void CmdSyncPosition(Vector3 position)
-    {
-        ClientRpcSyncPosition(position);
-    }
-
-    [ClientRpc]
-    private void ClientRpcSyncPosition(Vector3 position)
-    {
-        transform.position = position;
-    }
-
-    [ClientRpc(includeOwner = false)]
-    private void RpcInputCommand(PlayerCommand command)
-    {
-        _statesController.ReactToCommand(command);
-        _statesController.Update();
+        _playerRenderer.OnInvincibilityChange(newValue);
     }
 }

@@ -60,14 +60,14 @@ public class RoomUI : MonoBehaviour
         NetworkRoom.ActionDenyStartButton -= DenyStartButton;
     }
 
-    private void ShowLocalPlayerSlot(int index)
+    private void ShowLocalPlayerSlot(int index, string playerName)
     {
-        _roomPlayersUI[index].Show(true);
+        _roomPlayersUI[index].Show(true, playerName);
     }
 
-    private void ShowOtherPlayerSlot(int index)
+    private void ShowOtherPlayerSlot(int index, string playerName)
     {
-        _roomPlayersUI[index].Show(false);
+        _roomPlayersUI[index].Show(false, playerName);
     }
 
     private void HideOtherPlayerSlot(int index)
@@ -75,9 +75,9 @@ public class RoomUI : MonoBehaviour
         _roomPlayersUI[index].Hide();
     }
 
-    private void OnOtherPlayerReadyStatusChanged(int index, bool readyStatus)
+    private void OnOtherPlayerReadyStatusChanged(int index, bool readyStatus, string playerName)
     {
-        _roomPlayersUI[index].OnOtherPlayerReadyStatusChanged(readyStatus);
+        _roomPlayersUI[index].OnOtherPlayerReadyStatusChanged(readyStatus, playerName);
     }
 
     private void ShowStartButton()

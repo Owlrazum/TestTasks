@@ -41,7 +41,7 @@ public class CameraController
     public void Update()
     {
         float h = Input.GetAxis(HorizontalMouseAxisName);
-        float v = Input.GetAxis(VerticalMouseAxisName);
+        float v = -Input.GetAxis(VerticalMouseAxisName); // minus to avoid inversion
         h = Mathf.Clamp(h, -MaxInputDelta, MaxInputDelta);
         v = Mathf.Clamp(v, -MaxInputDelta, MaxInputDelta);
 

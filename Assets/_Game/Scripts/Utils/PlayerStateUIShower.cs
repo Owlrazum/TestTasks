@@ -9,16 +9,17 @@ public class PlayerStateUIShower : MonoBehaviour
     private void Awake()
     {
         TryGetComponent(out _textMesh);
-        GameController.EventStateChanged += OnStateChanged;
+        Player.EventLocalPlayerStateChanged += OnStateChanged;
     }
 
     private void OnDestroy()
     { 
-        GameController.EventStateChanged -= OnStateChanged;
+        Player.EventLocalPlayerStateChanged -= OnStateChanged;
     }
 
     private void OnStateChanged(PlayerState state)
     {
+        Debug.Log("OnStateChanged");
         _textMesh.text = state.ToString();
     }
 }

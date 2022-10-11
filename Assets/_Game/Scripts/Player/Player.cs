@@ -1,3 +1,5 @@
+using System;
+
 using UnityEngine;
 using UnityEngine.Assertions;
 using Mirror;
@@ -5,25 +7,25 @@ using Mirror;
 public class Player : NetworkBehaviour
 {
     [SyncVar]
-    private int _score;
-
-    public int Score
-    {
-        get { return _score; }
-        set { _score = value; }
-    }
-
-    [SyncVar]
-    private int _index;
+    private int _index; // should be set only in network room
     public int Index
     {
         get { return _index; }
         set { _index = value; }
     }
 
+    [SyncVar]
+    private string _name; // should be set only in network room
+    public string Name
+    {
+        get { return _name; }
+        set { _name = value; }
+    }
+
     public bool IsReady { get; set; }
 
     private PlayerCharacter _character;
+    public static Action<PlayerState> EventLocalPlayerStateChanged; // hook for PlayerStateUIShower
 
     private void Awake()
     {
@@ -49,7 +51,8 @@ public class Player : NetworkBehaviour
         Assert.IsNotNull(_character, $"Client has not found PlayerCharacter using {playerCharacterNetId}");
         _character.EventHitOtherCharacter += OnCharacterHitOtherCharacter;
         Debug.Log("OnPlayerAssign target");
-        _character.OnPlayerAssign();
+        _character.OnLocalPlayerAssign();
+        EventLocalPlayerStateChanged = _character.EventStateChanged;
     }
 
     [Server]
@@ -73,6 +76,6 @@ public class Player : NetworkBehaviour
     [Command]
     private void CmdIncreaseScore()
     {
-        _score++;
+        GameController.ServerPlayerIncreasedScore?.Invoke(_index);
     }
 }
