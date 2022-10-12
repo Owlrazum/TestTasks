@@ -29,7 +29,6 @@ public class GameEndUICanvas : NetworkBehaviour
     {
         TryGetComponent(out _canvas);
         _canvas.enabled = false;
-        Debug.Log("GameEndUICanvas startClient");
     }
 
     [Server]
@@ -41,9 +40,8 @@ public class GameEndUICanvas : NetworkBehaviour
     [ClientRpc]
     private void ClientRpcShowEndGameUI(string winnerName)
     {
-        Debug.Log("ShowEndGameUI");
         _canvas.enabled = true;
-        _winTextMesh.text += _winText + winnerName + "!";
+        _winTextMesh.text = _winText + winnerName + "!";
     }
 
     [Server]

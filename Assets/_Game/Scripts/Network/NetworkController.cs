@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Assertions;
 using Mirror;
@@ -17,7 +18,7 @@ public class NetworkController : NetworkManager
     public static Action<string> ActionUpdateNetworkAddress;
 
     public static Action<SceneType> ActionServerChangeScene;
-    public static Func<Transform> ActionGetStartPosition;
+    public static Func<List<Transform>> ActionGetStartPositionsList;
 
     public static Action<SceneType> EventServerSceneChanged; // pub
     public static Action<SceneType> EventClientSceneChanged; // pub
@@ -39,7 +40,7 @@ public class NetworkController : NetworkManager
         ActionUpdateNetworkAddress += UpdateNetworkAddress;
 
         ActionServerChangeScene += ServerChangeSceneByType;
-        ActionGetStartPosition += GetStartPosition;
+        ActionGetStartPositionsList += GetStartPositionsList;
 
         // Could use singleton instead, but prefer to use static delegates because they make it easier to
         // expose specific functionality for me. 
@@ -58,9 +59,9 @@ public class NetworkController : NetworkManager
         ActionStartClient -= StartClient;
 
         ActionUpdateNetworkAddress -= UpdateNetworkAddress;
-
+        
         ActionServerChangeScene -= ServerChangeSceneByType;
-        ActionGetStartPosition -= GetStartPosition;
+        ActionGetStartPositionsList -= GetStartPositionsList;
 
         Assert.IsTrue(ActionStartServer == null, "There are more than one NetworkControllers!");
     }
@@ -100,6 +101,31 @@ public class NetworkController : NetworkManager
         ServerChangeSceneByType(SceneType.Room);
     }
 
+    public override void OnServerConnect(NetworkConnectionToClient conn)
+    {
+        if (numPlayers >= maxConnections)
+        {
+            conn.Disconnect();
+            return;
+        }
+
+        if (GameController.FuncServerGetState != null) // The GameController is spawned
+        { 
+            if (GameController.FuncServerGetState() == GameState.Gameplay)
+            {
+                conn.Disconnect();
+                Debug.Log("You are not allowed to connect to existing game.");
+                return;
+            }
+        }
+    }
+
+    public override void OnClientConnect()
+    {
+        NetworkClient.Ready();
+        NetworkClient.AddPlayer();
+    }
+
     private void ServerChangeSceneByType(SceneType sceneType)
     {
         ServerChangeScene(_scenesToUse.GetSceneName(sceneType));
@@ -131,28 +157,12 @@ public class NetworkController : NetworkManager
         EventClientSceneChanged?.Invoke(CurrentScene);
     }
 
-    public override void OnServerConnect(NetworkConnectionToClient conn)
+    /// <summary>
+    /// The Mirror default random implementation can cause duplicates. To avoid that, pass the list instead.
+    /// It should be guaranteed that startPositions amount is greated that of players.
+    /// </summary>
+    private List<Transform> GetStartPositionsList()
     {
-        if (numPlayers >= maxConnections)
-        {
-            conn.Disconnect();
-            return;
-        }
-
-        if (GameController.FuncServerGetState != null) // The GameController is spawned
-        { 
-            if (GameController.FuncServerGetState() == GameState.Gameplay)
-            {
-                conn.Disconnect();
-                Debug.Log("You are not allowed to connect to existing game.");
-                return;
-            }
-        }
-    }
-
-    public override void OnClientConnect()
-    {
-        NetworkClient.Ready();
-        NetworkClient.AddPlayer();
+        return startPositions;
     }
 }

@@ -8,4 +8,5 @@ public enum PlayerCommandType:byte
 }
 public abstract class PlayerCommand
 {
+    public abstract PlayerCommandType GetPlayerCommandType();
 }

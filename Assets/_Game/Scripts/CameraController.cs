@@ -5,6 +5,8 @@ public class CameraController
     private const float HorizontalMouseSpeed = 90;
     private const float VerticalMouseSpeed = 90;
 
+    private const float MouseSensitivity = 1.5f;
+
     private const float VerticalOffset = 0;
 
     private const float MinRotAngle = 0;
@@ -45,7 +47,7 @@ public class CameraController
         h = Mathf.Clamp(h, -MaxInputDelta, MaxInputDelta);
         v = Mathf.Clamp(v, -MaxInputDelta, MaxInputDelta);
 
-        _horizontalRotationAngle += h * HorizontalMouseSpeed * Time.deltaTime;
+        _horizontalRotationAngle += h * HorizontalMouseSpeed * MouseSensitivity * Time.deltaTime;
         if (_horizontalRotationAngle < 0)
         {
             _horizontalRotationAngle = 360 + _horizontalRotationAngle;
@@ -55,7 +57,7 @@ public class CameraController
             _horizontalRotationAngle = _horizontalRotationAngle - 360;
         }
 
-        _verticalRotationAngle += v * VerticalMouseSpeed * Time.deltaTime;
+        _verticalRotationAngle += v * VerticalMouseSpeed * MouseSensitivity * Time.deltaTime;
         _verticalRotationAngle = Mathf.Clamp(_verticalRotationAngle, MinRotAngle, MaxRotAngle);
 
         Quaternion rot = Quaternion.Euler(_verticalRotationAngle, _horizontalRotationAngle, 0);

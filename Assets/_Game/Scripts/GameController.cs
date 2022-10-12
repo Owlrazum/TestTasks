@@ -41,6 +41,8 @@ public class GameController : NetworkBehaviour
     private Dictionary<int, int> _scores; // server-only, with playerIndex as key
     private int _readyPlayerCount;
 
+    private List<Transform> _startPositions;
+
     private void Awake()
     {
         DontDestroyOnLoad(gameObject);
@@ -133,10 +135,13 @@ public class GameController : NetworkBehaviour
     [Server]
     private void ServerSpawnPlayerCharacters()
     {
+        _startPositions = NetworkController.ActionGetStartPositionsList();
+        _startPositions.Shuffle(); // guarantees unique player placement
+        int startPositionsIndexer = 0;
         foreach (var kv in _players)
         {
             Player player = kv.Value;
-            Transform spawnPosition = NetworkController.ActionGetStartPosition();
+            Transform spawnPosition = _startPositions[startPositionsIndexer++];
             GameObject playerCharacterGb = Instantiate(_playerCharacterPrefab, spawnPosition.position, Quaternion.identity);
             NetworkServer.Spawn(playerCharacterGb);
             NetworkIdentity playerCharacterId = playerCharacterGb.GetComponent<NetworkIdentity>();
@@ -171,10 +176,13 @@ public class GameController : NetworkBehaviour
     [Server]
     private void ServerRestartMatch()
     {
+        _startPositions.Shuffle();
+        int startPositionsIndexer = 0;
+
         foreach (var kv in _players)
         {
             Player player = kv.Value;
-            Transform spawnPosition = NetworkController.ActionGetStartPosition();
+            Transform spawnPosition = _startPositions[startPositionsIndexer++];
             player.ServerRespawnCharacter(spawnPosition.position);
         }
 

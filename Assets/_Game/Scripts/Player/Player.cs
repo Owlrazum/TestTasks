@@ -85,7 +85,6 @@ public class Player : NetworkBehaviour
 
     private void OnServerCharacterHitOtherCharacter()
     {
-        Debug.Log("Score increase");
         GameController.ServerPlayerIncreasedScore?.Invoke(this);
     }
 

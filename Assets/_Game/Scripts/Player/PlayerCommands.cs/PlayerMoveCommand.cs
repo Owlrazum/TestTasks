@@ -7,6 +7,11 @@ public class PlayerMoveCommand : PlayerCommand
     {
         Direction = direction;
     }
+
+    public override PlayerCommandType GetPlayerCommandType()
+    {
+        return PlayerCommandType.Move;
+    }
     
     public bool ShouldStartAtMaxSpeed { get; set; }
 

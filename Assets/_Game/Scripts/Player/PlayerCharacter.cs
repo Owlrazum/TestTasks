@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
 
@@ -30,8 +31,8 @@ public class PlayerCharacter : NetworkBehaviour
     private bool _isInvincibleSyncVar;
     public bool IsInvincible { get { return _isInvincibleSyncVar; } }
 
-    private bool _isServerFrameInputReceived;
     private bool _isServerCollisionEntered;
+    private HashSet<PlayerCommandType> _serverReceivedCommands;
 
     public override void OnStartServer()
     {
@@ -41,6 +42,7 @@ public class PlayerCharacter : NetworkBehaviour
         EventStateChanged = _statesController.EventStateChanged;
 
         _playerRenderer = new PlayerRenderer(_playerParams, _renderer);
+        _serverReceivedCommands = new HashSet<PlayerCommandType>(3);
     }
 
     public override void OnStartClient()
@@ -73,16 +75,25 @@ public class PlayerCharacter : NetworkBehaviour
             PlayerCommand command = _playerInputReceiever.GetCommand();
             CmdInputCommand(command);
         }
-    }   
+    }
 
     [Command]
     private void CmdInputCommand(PlayerCommand command)
     {
-        if (!_isServerFrameInputReceived) // As it turned out, two input commands could be received at the same frame.
-        { 
+        if (command != null)
+        {
+            PlayerCommandType commandType = command.GetPlayerCommandType();
+            if (!_serverReceivedCommands.Contains(commandType)) // As it turned out, two input commands could be received at the same frame.
+            {
+                _statesController.ReactToCommand(command);
+                _statesController.Update();
+                _serverReceivedCommands.Add(commandType);
+            }
+        }
+        else
+        {
             _statesController.ReactToCommand(command);
             _statesController.Update();
-            _isServerFrameInputReceived = true;
         }
     }
 
@@ -95,7 +106,7 @@ public class PlayerCharacter : NetworkBehaviour
 
         if (isServer)
         {
-            _isServerFrameInputReceived = false;
+            _serverReceivedCommands.Clear();
             _isServerCollisionEntered = false;
         }
     }
@@ -106,7 +117,7 @@ public class PlayerCharacter : NetworkBehaviour
         {
             return;
         }
-        
+
         if (_isServerCollisionEntered)
         {
             return;
