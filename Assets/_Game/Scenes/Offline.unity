@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18030208, g: 0.2257373, b: 0.3069624, a: 1}
+  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -650,7 +650,7 @@ GameObject:
   - component: {fileID: 561100489}
   - component: {fileID: 561100490}
   - component: {fileID: 561100492}
-  - component: {fileID: 561100491}
+  - component: {fileID: 561100493}
   m_Layer: 0
   m_Name: NetworkController
   m_TagString: Untagged
@@ -689,7 +689,7 @@ MonoBehaviour:
   runInBackground: 1
   autoStartServerBuild: 1
   serverTickRate: 60
-  transport: {fileID: 561100491}
+  transport: {fileID: 561100493}
   networkAddress: localhost
   maxConnections: 10
   authenticator: {fileID: 0}
@@ -702,30 +702,6 @@ MonoBehaviour:
   _scenesToUse: {fileID: 11400000, guid: c25c81b49d1bc40229df66faa7e404cc, type: 2}
   CurrentScene: 0
   ClientLoadingScene: 0
---- !u!114 &561100491
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 561100486}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c7424c1070fad4ba2a7a96b02fbeb4bb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  port: 7777
-  NoDelay: 0
-  SendTimeout: 5000
-  ReceiveTimeout: 30000
-  serverMaxMessageSize: 16384
-  serverMaxReceivesPerTick: 10000
-  serverSendQueueLimitPerConnection: 10000
-  serverReceiveQueueLimitPerConnection: 10000
-  clientMaxMessageSize: 16384
-  clientMaxReceivesPerTick: 1000
-  clientSendQueueLimit: 10000
-  clientReceiveQueueLimit: 10000
 --- !u!114 &561100492
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -741,6 +717,30 @@ MonoBehaviour:
   _gameControllerPrefab: {fileID: 20136144813188074, guid: 2faf43ba3599544feaaa61824f5c9ba9, type: 3}
   _networkRoomPrefab: {fileID: 5827266589177851777, guid: 343c669fc2cdc4480a4a2e5522f8b2e8, type: 3}
   _playerCharacterPrefab: {fileID: 6433015514231650127, guid: 94707786cd5a74dc786eaba271e13721, type: 3}
+--- !u!114 &561100493
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 561100486}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c7424c1070fad4ba2a7a96b02fbeb4bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  port: 7777
+  NoDelay: 1
+  SendTimeout: 5000
+  ReceiveTimeout: 30000
+  serverMaxMessageSize: 16384
+  serverMaxReceivesPerTick: 10000
+  serverSendQueueLimitPerConnection: 10000
+  serverReceiveQueueLimitPerConnection: 10000
+  clientMaxMessageSize: 16384
+  clientMaxReceivesPerTick: 1000
+  clientSendQueueLimit: 10000
+  clientReceiveQueueLimit: 10000
 --- !u!1 &707675918
 GameObject:
   m_ObjectHideFlags: 0
@@ -759,7 +759,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &707675920
 MonoBehaviour:
   m_ObjectHideFlags: 0

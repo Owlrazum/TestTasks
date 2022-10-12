@@ -5,7 +5,7 @@ public class CameraController
     private const float HorizontalMouseSpeed = 90;
     private const float VerticalMouseSpeed = 90;
 
-    private const float MouseSensitivity = 1.5f;
+    private const float MouseSensitivity = 5f;
 
     private const float VerticalOffset = 0;
 

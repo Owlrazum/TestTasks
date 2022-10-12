@@ -1870,15 +1870,15 @@ MonoBehaviour:
   syncInterval: 0.1
   clientAuthority: 0
   sendRate: 30
-  bufferTimeMultiplier: 2
+  bufferTimeMultiplier: 4
   bufferSizeLimit: 64
   catchupNegativeThreshold: -1
   catchupPositiveThreshold: 1
-  catchupSpeed: 0.009999999776482582
-  slowdownSpeed: 0.009999999776482582
+  catchupSpeed: 0.10000000149011612
+  slowdownSpeed: 0.10000000149011612
   driftEmaDuration: 1
   dynamicAdjustment: 1
-  dynamicAdjustmentTolerance: 1
+  dynamicAdjustmentTolerance: 2
   deliveryTimeEmaDuration: 2
   onlySyncOnChange: 1
   bufferResetMultiplier: 5
