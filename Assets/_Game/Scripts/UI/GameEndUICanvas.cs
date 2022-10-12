@@ -11,6 +11,8 @@ public class GameEndUICanvas : NetworkBehaviour
     [SerializeField]
     private string _winText;
 
+    private Canvas _canvas;
+
     public override void OnStartServer()
     {
         GameController.EventServerGameEnded += OnServerGameEnd;
@@ -25,8 +27,9 @@ public class GameEndUICanvas : NetworkBehaviour
 
     public override void OnStartClient()
     {
+        TryGetComponent(out _canvas);
+        _canvas.enabled = false;
         Debug.Log("GameEndUICanvas startClient");
-        gameObject.SetActive(false);
     }
 
     [Server]
@@ -39,7 +42,7 @@ public class GameEndUICanvas : NetworkBehaviour
     private void ClientRpcShowEndGameUI(string winnerName)
     {
         Debug.Log("ShowEndGameUI");
-        gameObject.SetActive(true);
+        _canvas.enabled = true;
         _winTextMesh.text += _winText + winnerName + "!";
     }
 
@@ -52,6 +55,6 @@ public class GameEndUICanvas : NetworkBehaviour
     [ClientRpc]
     private void ClientRpcHideEndGameUI()
     {
-        gameObject.SetActive(false);
+        _canvas.enabled = false;
     }
 }

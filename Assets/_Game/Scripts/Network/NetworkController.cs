@@ -139,7 +139,15 @@ public class NetworkController : NetworkManager
             return;
         }
 
-        //TODO disconnect if gameplay state
+        if (GameController.FuncServerGetState != null) // The GameController is spawned
+        { 
+            if (GameController.FuncServerGetState() == GameState.Gameplay)
+            {
+                conn.Disconnect();
+                Debug.Log("You are not allowed to connect to existing game.");
+                return;
+            }
+        }
     }
 
     public override void OnClientConnect()

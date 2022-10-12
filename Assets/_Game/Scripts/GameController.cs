@@ -14,6 +14,8 @@ public enum GameState
 
 public class GameController : NetworkBehaviour
 {
+    public static Func<GameState> FuncServerGetState;
+
     public static Action<Dictionary<int, Player>> ActionServerGameStart; // pub is NetworkRoom.
     public static Action<Dictionary<int, Player>> EventServerGameStarted; // pub is GameController
 
@@ -48,6 +50,8 @@ public class GameController : NetworkBehaviour
     {
         _readyPlayerCount = 0;
 
+        FuncServerGetState += GetState;
+
         ActionServerGameStart += ServerGameStart;
         ServerPlayerIncreasedScore += OnPlayerIncreasedScore;
         NetworkController.EventServerSceneChanged += OnServerSceneChanged;
@@ -55,6 +59,8 @@ public class GameController : NetworkBehaviour
 
     public override void OnStopServer()
     {
+        FuncServerGetState -= GetState;
+
         ActionServerGameStart -= ServerGameStart;
         ServerPlayerIncreasedScore -= OnPlayerIncreasedScore;
         NetworkController.EventServerSceneChanged -= OnServerSceneChanged;
@@ -172,9 +178,12 @@ public class GameController : NetworkBehaviour
             player.ServerRespawnCharacter(spawnPosition.position);
         }
 
-        foreach (int key in _scores.Keys)
+        int[] keys = new int[_scores.Keys.Count];
+        _scores.Keys.CopyTo(keys, 0); // As a quick implementation of each value update in dictionary. Could use references for playerScore instead of int, but there is existing already in the PlayerScoresUI, which would then be needed to be moved to separate class.
+
+        for (int i = 0; i < keys.Length; i++)
         {
-            _scores[key] = 0;
+            _scores[keys[i]] = 0;
         }
     }
 }
