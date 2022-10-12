@@ -19,14 +19,6 @@ public class PlayerParamsSO : ScriptableObject
     }
 
     [SerializeField]
-    private float _syncTime = 1;
-
-    public float SyncTime
-    {
-        get { return _syncTime; }
-    }
-
-    [SerializeField]
     private float _gravity = 9.81f;
     [SerializeField]
     private float _maxMoveSpeed = 1;
