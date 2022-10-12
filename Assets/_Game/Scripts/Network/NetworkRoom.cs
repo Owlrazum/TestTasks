@@ -123,6 +123,10 @@ public class NetworkRoom : NetworkBehaviour
             NetworkIdentity playerNetId = player.netIdentity;
             TargetOtherPlayerAdded(newConnection, playerNetId, player.Index);
             TargetOtherPlayerAdded(connection, newPlayerNetId, newPlayer.Index);
+            if (player.IsReady)
+            {
+                TargetUpdateUIIfOtherReady(newConnection, playerNetId);
+            }
         }
 
         // TODO: understand why TargetLocalPlayerAdded should be called before TargetOtherPlayerAdded
@@ -143,6 +147,12 @@ public class NetworkRoom : NetworkBehaviour
         Player player = GetPlayer(playerNetId);
         player.Index = index;
         EventPlayerRegistered?.Invoke(player);
+    }
+    [TargetRpc]
+    private void TargetUpdateUIIfOtherReady(NetworkConnection connection, NetworkIdentity otherPlayerNetId)
+    {
+        Player player = GetPlayer(otherPlayerNetId);
+        player.EventReadyStatusChanged?.Invoke(true);
     }
     #endregion
 
