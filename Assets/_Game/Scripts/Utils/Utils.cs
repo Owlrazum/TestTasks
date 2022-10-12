@@ -23,7 +23,16 @@ public static class Utils
     public static int AddSorted<T>(this List<T> list, T value)
     {
         int index = list.BinarySearch(value);
-        list.Insert((index >= 0) ? index : ~index, value);
-        return index;
+        int insertionIndex = (index >= 0) ? index : ~index;
+        list.Insert(insertionIndex, value);
+        return insertionIndex;
+    }
+
+    public static int AddSorted<T>(this List<T> list, T value, IComparer<T> comparer)
+    { 
+        int index = list.BinarySearch(value, comparer);
+        int insertionIndex = (index >= 0) ? index : ~index;
+        list.Insert(insertionIndex, value);
+        return insertionIndex;
     }
 }

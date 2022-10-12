@@ -26,6 +26,19 @@ public class PlayerStatesController
         _currentState = IdleState;
     }
 
+    public void Reset()
+    {
+        if (!(_currentState is PlayerIdleState))
+        {
+            _currentState.OnExit();
+        }
+        _currentState = IdleState;
+        _currentState.OnEnter();
+        EventStateChanged?.Invoke(_currentState);
+
+        IdleAnimation();
+    }
+
     public void ReactToCommand(PlayerCommand command)
     {
         // Each state should delegate command to new state if necessary.

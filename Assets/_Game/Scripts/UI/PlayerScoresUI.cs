@@ -12,6 +12,7 @@ public class PlayerScoresUI : NetworkBehaviour
     private List<PlayerScore> _playerScores; // key: playerIndex
 
     private int MaxTextMeshCount;
+    private ByPlayerIndexComparer _playerIndexComparer;
     private struct PlayerScore : IComparable<PlayerScore>, IEquatable<PlayerScore>
     {
         public int PlayerIndex;
@@ -28,8 +29,15 @@ public class PlayerScoresUI : NetworkBehaviour
         public int CompareTo(PlayerScore other)
         {
             if (Amount != other.Amount)
-            { 
-                return Amount.CompareTo(other.Amount);
+            {
+                if (Amount > other.Amount)
+                {
+                    return -1;
+                }
+                else
+                {
+                    return 1;
+                }
             }
             else
             {
@@ -41,23 +49,31 @@ public class PlayerScoresUI : NetworkBehaviour
         {
             return Amount.Equals(other.Amount);
         }
+
+        public override string ToString()
+        {
+            return $"Index: {PlayerIndex} {PlayerName} {Amount}";
+        }
     }
 
     private void Awake()
     {
         MaxTextMeshCount = transform.GetChild(0).childCount;
+        _playerIndexComparer = new ByPlayerIndexComparer();
     }
 
     public override void OnStartServer()
     {
         GameController.EventServerGameStarted += ServerInitialize;
         GameController.ServerPlayerIncreasedScore += ServerOnPlayerIncreasedScore;
+        GameController.EventServerMatchRestarted += OnServerMatchRestarted;
     }
 
     public override void OnStopServer()
     {
         GameController.EventServerGameStarted -= ServerInitialize;
         GameController.ServerPlayerIncreasedScore -= ServerOnPlayerIncreasedScore;
+        GameController.EventServerMatchRestarted -= OnServerMatchRestarted;
     }
 
     public override void OnStartClient()
@@ -81,8 +97,8 @@ public class PlayerScoresUI : NetworkBehaviour
             int playerIndex = kv.Key;
             Assert.IsTrue(playerIndex < MaxTextMeshCount, "The player index is out of bounds for textMeshes array!"); // perhaps redesign of player indexing will be needed in such case.
             Player player = kv.Value;
-            PlayerScore score = new PlayerScore(playerIndex, player.Name, 0);
-            _playerScores.AddSorted(score);
+            PlayerScore score = new PlayerScore(playerIndex, player.PlayerName, 0);
+            _playerScores.AddSorted(score, _playerIndexComparer);
             ClientRpcUpdateTextMesh(playerIndex, score);
         }
 
@@ -108,22 +124,20 @@ public class PlayerScoresUI : NetworkBehaviour
     }
 
     [Server]
-    private void ServerOnPlayerIncreasedScore(int playerIndex)
+    private void ServerOnPlayerIncreasedScore(Player player)
     {
-        PlayerScore dummy = new PlayerScore(playerIndex, "", -1);
-        int scoreIndex = _playerScores.BinarySearch(dummy, new ByPlayerIndexComparer());
+        PlayerScore dummy = new PlayerScore(player.Index, "", -1);
+        int scoreIndex = _playerScores.BinarySearch(dummy, _playerIndexComparer);
         Assert.IsTrue(scoreIndex >= 0);
 
         PlayerScore score = _playerScores[scoreIndex];
-        score.Amount++;
-        _playerScores.RemoveAt(scoreIndex);
-        int newIndex = _playerScores.AddSorted(score);
-        if (scoreIndex != newIndex)
+        score.Amount += 1;
+        _playerScores[scoreIndex] = score;
+
+        _playerScores.Sort();
+        for (int i = 0; i < _playerScores.Count; i++)
         {
-            for (int i = newIndex; i < _playerScores.Count; i++)
-            {
-                ClientRpcUpdateTextMesh(i, _playerScores[i]);
-            }
+            ClientRpcUpdateTextMesh(i, _playerScores[i]);
         }
     }
 
@@ -132,6 +146,19 @@ public class PlayerScoresUI : NetworkBehaviour
         public int Compare(PlayerScore score, PlayerScore other)
         {
             return score.PlayerIndex.CompareTo(other.PlayerIndex);
+        }
+    }
+
+    [Server]
+    private void OnServerMatchRestarted()
+    {
+        for (int i = 0; i < _playerScores.Count; i++)
+        {
+            PlayerScore playerScore = _playerScores[i];
+            playerScore.Amount = 0;
+            _playerScores[i] = playerScore;
+
+            ClientRpcUpdateTextMesh(i, _playerScores[i]);
         }
     }
 }

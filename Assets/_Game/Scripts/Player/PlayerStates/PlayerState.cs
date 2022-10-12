@@ -2,6 +2,8 @@ using UnityEngine;
 public abstract class PlayerState
 {
     protected PlayerStatesController _statesController;
+    protected float _currentVerticalSpeed;
+    protected float _gravity;
 
     public PlayerState(PlayerParamsSO playerParams, PlayerStatesController statesController)
     {
@@ -25,8 +27,6 @@ public abstract class PlayerState
         return null;
     }
 
-    protected float _currentVerticalSpeed;
-    protected float _gravity;
     protected void CheckGravityMove()
     { 
         if (!_statesController.Player.isGrounded)

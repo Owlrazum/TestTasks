@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -16,7 +17,9 @@ public class GameController : NetworkBehaviour
     public static Action<Dictionary<int, Player>> ActionServerGameStart; // pub is NetworkRoom.
     public static Action<Dictionary<int, Player>> EventServerGameStarted; // pub is GameController
 
-    public static Action<int> ServerPlayerIncreasedScore;
+    public static Action<Player> ServerPlayerIncreasedScore;
+    public static Action<Player> EventServerGameEnded;
+    public static Action EventServerMatchRestarted;
 
     private const int WinScoresAmount = 3;
 
@@ -28,6 +31,9 @@ public class GameController : NetworkBehaviour
 
     [SerializeField]
     private GameObject _playerCharacterPrefab;
+
+    [SerializeField]
+    private float _gameEndPauseTime = 5;
 
     private Dictionary<int, Player> _players; // server-only, with playerIndex as key
     private Dictionary<int, int> _scores; // server-only, with playerIndex as key
@@ -48,19 +54,19 @@ public class GameController : NetworkBehaviour
     }
 
     public override void OnStopServer()
-    { 
+    {
         ActionServerGameStart -= ServerGameStart;
         ServerPlayerIncreasedScore -= OnPlayerIncreasedScore;
         NetworkController.EventServerSceneChanged -= OnServerSceneChanged;
     }
 
     public override void OnStartClient()
-    { 
+    {
         NetworkController.EventClientSceneChanged += OnClientSceneChanged;
     }
 
     public override void OnStopClient()
-    { 
+    {
         NetworkController.EventClientSceneChanged -= OnClientSceneChanged;
     }
 
@@ -75,21 +81,6 @@ public class GameController : NetworkBehaviour
         }
 
         NetworkController.ActionServerChangeScene(SceneType.Online);
-    }
-
-    [Server]
-    private void OnPlayerIncreasedScore(int playerIndex)
-    {
-        _scores[playerIndex]++;
-        if (_scores[playerIndex] >= WinScoresAmount)
-        {
-            EndGame(playerIndex);
-        }
-    }
-
-    private void EndGame(int winnerPlayerIndex)
-    {
-        Debug.Log($"Game ended, player {winnerPlayerIndex} won!");
     }
 
     [Server]
@@ -109,7 +100,7 @@ public class GameController : NetworkBehaviour
     }
 
     private void UpdateState(SceneType newSceneType)
-    { 
+    {
         _state = newSceneType switch
         {
             SceneType.Offline => GameState.Offline,
@@ -122,7 +113,6 @@ public class GameController : NetworkBehaviour
     [Command(requiresAuthority = false)]
     private void CmdOnClientLoadedGameplayScene()
     {
-
         _readyPlayerCount++;
         if (_readyPlayerCount == _players.Count)
         {
@@ -145,6 +135,46 @@ public class GameController : NetworkBehaviour
             NetworkServer.Spawn(playerCharacterGb);
             NetworkIdentity playerCharacterId = playerCharacterGb.GetComponent<NetworkIdentity>();
             player.ServerAssignCharacter(playerCharacterId);
+        }
+    }
+
+    [Server]
+    private void OnPlayerIncreasedScore(Player player)
+    {
+        _scores[player.Index]++;
+        if (_scores[player.Index] >= WinScoresAmount)
+        {
+            EndGame(winner: player);
+        }
+    }
+
+    private void EndGame(Player winner)
+    {
+        Debug.Log("ServerGameEnded!");
+        EventServerGameEnded?.Invoke(winner);
+        StartCoroutine(GameEndPause());
+    }
+
+    private IEnumerator GameEndPause()
+    {
+        yield return new WaitForSeconds(_gameEndPauseTime);
+        ServerRestartMatch();
+        EventServerMatchRestarted?.Invoke();
+    }
+
+    [Server]
+    private void ServerRestartMatch()
+    {
+        foreach (var kv in _players)
+        {
+            Player player = kv.Value;
+            Transform spawnPosition = NetworkController.ActionGetStartPosition();
+            player.ServerRespawnCharacter(spawnPosition.position);
+        }
+
+        foreach (int key in _scores.Keys)
+        {
+            _scores[key] = 0;
         }
     }
 }

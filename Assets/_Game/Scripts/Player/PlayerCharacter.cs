@@ -18,7 +18,7 @@ public class PlayerCharacter : NetworkBehaviour
     [SerializeField]
     private Transform _followTransform;
 
-    public Action EventHitOtherCharacter;
+    public Action EventServerHitOtherCharacter;
     public Action<PlayerState> EventStateChanged; // PubPlayerStatesController:
 
     private PlayerStatesController _statesController;
@@ -29,6 +29,9 @@ public class PlayerCharacter : NetworkBehaviour
     [SyncVar(hook = nameof(OnInvincibilityChange))]
     private bool _isInvincibleSyncVar;
     public bool IsInvincible { get { return _isInvincibleSyncVar; } }
+
+    private bool _isServerFrameInputReceived;
+    private bool _isServerCollisionEntered;
 
     public override void OnStartServer()
     {
@@ -56,6 +59,13 @@ public class PlayerCharacter : NetworkBehaviour
         _playerInputReceiever = new PlayerInputReceiver(_cameraController);
     }
 
+    public void Respawn(Vector3 position)
+    {
+        transform.position = position;
+        _statesController.Reset();
+        _playerRenderer.Reset();
+    }
+
     private void Update()
     {
         if (hasAuthority)
@@ -68,8 +78,12 @@ public class PlayerCharacter : NetworkBehaviour
     [Command]
     private void CmdInputCommand(PlayerCommand command)
     {
-        _statesController.ReactToCommand(command);
-        _statesController.Update();
+        if (!_isServerFrameInputReceived) // As it turned out, two input commands could be received at the same frame.
+        { 
+            _statesController.ReactToCommand(command);
+            _statesController.Update();
+            _isServerFrameInputReceived = true;
+        }
     }
 
     private void LateUpdate()
@@ -78,11 +92,22 @@ public class PlayerCharacter : NetworkBehaviour
         {
             _cameraController.Update();
         }
+
+        if (isServer)
+        {
+            _isServerFrameInputReceived = false;
+            _isServerCollisionEntered = false;
+        }
     }
 
     private void OnControllerColliderHit(ControllerColliderHit hit)
     {
         if (!isServer)
+        {
+            return;
+        }
+        
+        if (_isServerCollisionEntered)
         {
             return;
         }
@@ -95,11 +120,13 @@ public class PlayerCharacter : NetworkBehaviour
         _statesController.OnHit(hit, out PlayerCharacter otherPlayerCharacter);
         if (otherPlayerCharacter != null && !otherPlayerCharacter.IsInvincible)
         {
-            EventHitOtherCharacter?.Invoke();
+            EventServerHitOtherCharacter?.Invoke();
             otherPlayerCharacter.OnDashHit();
+            _isServerCollisionEntered = true;
         }
     }
 
+    [Server]
     public void OnDashHit()
     {
         StartCoroutine(InvincibilityTimer());

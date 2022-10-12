@@ -9,7 +9,7 @@ public class NetworkRoom : NetworkBehaviour
 {
     #region Publish
     public static Action<Player> EventPlayerRegistered;
-    // public static Action<Player> EventPlayerUnregistered;
+    // public static Action<Player> EventPlayerUnregistered; // due to shortage in time, decision was made to not add this feature.
 
     public static Action ActionShowStartButton;
     public static Action ActionHideStartButton;
@@ -84,7 +84,7 @@ public class NetworkRoom : NetworkBehaviour
         int newIndex = _serverPlayerCount;
         newPlayer.Index = newIndex;
         string newName = $"Player {newIndex}";
-        newPlayer.Name = newName;
+        newPlayer.PlayerName = newName;
     }
 
     [Server]
@@ -199,7 +199,7 @@ public class NetworkRoom : NetworkBehaviour
     private void CmdChangeName(NetworkIdentity playerNetId, string newName)
     {
         Player player = GetPlayer(playerNetId);
-        player.Name = newName;
+        player.PlayerName = newName;
     }
 
     private void OnStartGameButtonPress()

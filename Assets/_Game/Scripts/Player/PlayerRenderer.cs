@@ -24,4 +24,9 @@ public class PlayerRenderer
             _renderer.sharedMaterial = _defaultMaterial;
         }
     }
+
+    public void Reset()
+    {
+        _renderer.sharedMaterial = _defaultMaterial;
+    }
 }

@@ -62,7 +62,7 @@ public class RoomPlayerUI : MonoBehaviour
 
             _localNameInputField.Activate();
             _localNameInputField.EventOnValueChanged += OnLocalNameChanged;
-            _localPlayerName.text = _playerToShow.Name;
+            _localPlayerName.text = _playerToShow.PlayerName;
         }
         else
         {
@@ -70,7 +70,7 @@ public class RoomPlayerUI : MonoBehaviour
             _localPlayerName.transform.parent.gameObject.SetActive(false);
             _localNameInputField.gameObject.SetActive(false);
 
-            _otherPlayerName.text = _playerToShow.Name;
+            _otherPlayerName.text = _playerToShow.PlayerName;
         }
     }
 

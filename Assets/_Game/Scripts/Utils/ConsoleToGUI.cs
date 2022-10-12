@@ -1,28 +1,21 @@
 using UnityEngine;
+using TMPro;
 
-// Copied from Internet and slightly modified
 public class ConsoleToGUI : MonoBehaviour
 {
     [SerializeField]
-    private int _fontSize;
-    //#if !UNITY_EDITOR
-    private string myLog = "";
-    private string output;
-    private string stack;
+    private GameObject _errorLog;
 
-    private string errorLog = "";
+    [SerializeField]
+    private TextMeshProUGUI _logMesh;
 
-    private GUIStyle _textAreaStyle;
-    private GUIStyle _textAreaErrorStyle;
+    [SerializeField]
+    private TextMeshProUGUI _errorMesh;
 
     void OnEnable()
     {
         DontDestroyOnLoad(gameObject);
-        _textAreaStyle = new GUIStyle("textArea");
-        _textAreaStyle.fontSize = _fontSize;
-        _textAreaErrorStyle = new GUIStyle("textArea");
-        _textAreaErrorStyle.fontSize = _fontSize;
-        _textAreaErrorStyle.fontStyle = FontStyle.Bold;
+        // _errorLog.SetActive(false);
         Application.logMessageReceived += Log;
     }
 
@@ -35,27 +28,18 @@ public class ConsoleToGUI : MonoBehaviour
     {
         if (type == LogType.Error)
         {
-            errorLog += logString;
-        }
-        output = logString;
-        stack = stackTrace;
-        myLog = output + "\n" + myLog;
-        if (myLog.Length > 5000)
-        {
-            myLog = myLog.Substring(0, 4000);
-        }
-    }
-
-    void OnGUI()
-    {
-        //if (!Application.isEditor) //Do not display in editor ( or you can use the UNITY_EDITOR macro to also disable the rest)
-        {
-            myLog = GUI.TextArea(new Rect(10, 10, 800, 100), myLog, _textAreaStyle);
-            if (errorLog.Length > 0)
+            if (_errorMesh.text.Length > 400)
             {
-                errorLog = GUI.TextArea(new Rect(10, 120, 800, 100), errorLog, _textAreaErrorStyle);
+                _errorMesh.text = "";
             }
+            _errorMesh.text += logString + "\n" + stackTrace + "\n";
+            return;
         }
+
+        if (_logMesh.text.Length > 400)
+        {
+            _logMesh.text = "";
+        }
+        _logMesh.text += logString + "\n";
     }
-    //#endif
 }

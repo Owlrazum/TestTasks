@@ -8,7 +8,7 @@ public class Player : NetworkBehaviour
 {
     [SyncVar(hook = nameof(OnNameChange))]
     private string _name; // should be set only in network room
-    public string Name
+    public string PlayerName // since it is similar to object.name, it is called PlayerName, not just Name
     {
         get { return _name; }
         set { _name = value; }
@@ -37,6 +37,14 @@ public class Player : NetworkBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
+    private void OnDestroy()
+    {
+        if (_character != null)
+        {
+            _character.EventServerHitOtherCharacter -= OnServerCharacterHitOtherCharacter;
+        }
+    }
+
     public override void OnStartLocalPlayer()
     {
         NetworkRoom.ActionRegisterPlayerInRoom(netIdentity);
@@ -56,40 +64,35 @@ public class Player : NetworkBehaviour
     public void ServerAssignCharacter(NetworkIdentity playerCharacterNetId)
     {
         playerCharacterNetId.AssignClientAuthority(connectionToClient);
+        _character = GetCharacter(playerCharacterNetId);
+        _character.EventServerHitOtherCharacter += OnServerCharacterHitOtherCharacter;
         TargetRpcAssignCharacter(connectionToClient, playerCharacterNetId);
     }
 
     [TargetRpc]
     private void TargetRpcAssignCharacter(NetworkConnection conn, NetworkIdentity playerCharacterNetId)
     {
-        _character = playerCharacterNetId.gameObject.GetComponent<PlayerCharacter>();
-        Assert.IsNotNull(_character, $"Client has not found PlayerCharacter using {playerCharacterNetId}");
-        _character.EventHitOtherCharacter += OnCharacterHitOtherCharacter;
+        _character = GetCharacter(playerCharacterNetId);
         _character.OnLocalPlayerAssign();
         EventLocalPlayerStateChanged = _character.EventStateChanged;
     }
 
     [Server]
-    public void ServerDisposeCharacter()
+    public void ServerRespawnCharacter(Vector3 position)
     {
-        ClientRpcDisposeCharacter();
+        _character.Respawn(position);
     }
 
-    [ClientRpc]
-    private void ClientRpcDisposeCharacter()
+    private void OnServerCharacterHitOtherCharacter()
     {
-        _character.EventHitOtherCharacter -= OnCharacterHitOtherCharacter;
-        _character = null;
+        Debug.Log("Score increase");
+        GameController.ServerPlayerIncreasedScore?.Invoke(this);
     }
 
-    private void OnCharacterHitOtherCharacter()
-    {
-        CmdIncreaseScore();
-    }
-
-    [Command]
-    private void CmdIncreaseScore()
-    {
-        GameController.ServerPlayerIncreasedScore?.Invoke(Index);
+    private PlayerCharacter GetCharacter(NetworkIdentity playerCharacterNetId)
+    { 
+        PlayerCharacter character = playerCharacterNetId.gameObject.GetComponent<PlayerCharacter>();
+        Assert.IsNotNull(character, $"Client has not found PlayerCharacter using {playerCharacterNetId}");
+        return character;
     }
 }
