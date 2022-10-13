@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: PlayerParameters
   m_EditorClassIdentifier: 
   _dashDistance: 6
-  _dashHitColorSwitchTime: 1
+  _dashHitColorSwitchTime: 3
   _syncTime: 0.1
   _gravity: 15
   _maxMoveSpeed: 4

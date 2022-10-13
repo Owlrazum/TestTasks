@@ -70,6 +70,7 @@ public class GameController : NetworkBehaviour
 
     public override void OnStartClient()
     {
+        Cursor.lockState = CursorLockMode.Confined;
         NetworkController.EventClientSceneChanged += OnClientSceneChanged;
     }
 
